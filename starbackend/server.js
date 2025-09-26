@@ -24,7 +24,7 @@ app.use("/api/applications", applicationRoutes);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("MongoDB connected successfully!"))
+  .then(() => console.log("MongoDB connected successfully"))
   .catch(err => console.log("MongoDB connection error:", err));
 
 // Create uploads directory if it doesn't exist
