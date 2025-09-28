@@ -34,17 +34,23 @@ const ReviewSubmitStep = ({ formData, uploadedImages, goToPreviousStep, handleFi
       </div>
 
       {/* Land Details Section */}
-      <div className="bg-gray-50 p-4 rounded-lg mb-4">
-        <h4 className="font-semibold text-lg mb-3 text-blue-800">Land Details</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div><strong>Survey No:</strong> {formData.surveyNo || "Not provided"}</div>
-          <div><strong>Sub Division No:</strong> {formData.subDivisionNo || "Not provided"}</div>
-          <div><strong>SRO Name:</strong> {formData.sroName || "Not provided"}</div>
-          <div><strong>Registration Doc No:</strong> {formData.regDocNo || "Not provided"}</div>
-          <div><strong>Registered Date:</strong> {formData.registeredDate || "Not provided"}</div>
-          <div><strong>Land Category:</strong> {formData.landCategory || "Not provided"}</div>
-          
-        </div>
+     <div className="bg-gray-50 p-4 rounded-lg mb-4">
+  <h4 className="font-semibold text-lg mb-3 text-blue-800">Land Details</h4>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div><strong>Survey No:</strong> {formData.surveyNo || "Not provided"}</div>
+    <div><strong>Sub Division No:</strong> {formData.subDivisionNo || "Not provided"}</div>
+    <div><strong>SRO Name:</strong> {formData.sroName || "Not provided"}</div>
+    <div>
+      <strong>Registration Doc No:</strong>{" "}
+      {formData.regDocNo && formData.docYear 
+        ? `${formData.regDocNo}/${formData.docYear}`
+        : "Not provided"
+      }
+    </div>
+    <div><strong>Registered Date:</strong> {formData.registeredDate || "Not provided"}</div>
+    <div><strong>Land Category:</strong> {formData.landCategory || "Not provided"}</div>
+  </div>
+
       </div>
 
       {/* Uploaded Documents Section */}
