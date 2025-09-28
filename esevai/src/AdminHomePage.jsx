@@ -196,15 +196,8 @@ const downloadDocument = async (doc, index) => {
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Application Details</h2>
               <p className="text-gray-600">Application ID: {application._id}</p>
-              <p className="text-gray-600">Status: 
-                <span className={`ml-2 px-2 py-1 rounded text-sm font-medium ${
-                  application.status === 'approved' ? 'bg-green-100 text-green-800' :
-                  application.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                  'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {application.status || 'pending'}
-                </span>
-              </p>
+              
+              
             </div>
             <div className="flex items-center space-x-4">
               <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">
@@ -450,31 +443,7 @@ const downloadDocument = async (doc, index) => {
           )}
 
           {/* Status Update Section */}
-          <div className="bg-white border-t border-gray-200 pt-6 mt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <label htmlFor="status" className="text-sm font-medium text-gray-700">
-                  Update Status:
-                </label>
-                <select
-                  id="status"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-                >
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-                <button
-                  onClick={updateStatus}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm"
-                >
-                  Update Status
-                </button>
-              </div>
-            </div>
-          </div>
+         
 
           {/* Action Buttons */}
           <div className="flex justify-between items-center pt-6 border-t border-gray-200">

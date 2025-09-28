@@ -423,7 +423,7 @@ const UserDashboard = () => {
             {paymentSuccess ? (
               <div className="text-center py-8">
                 <div className="text-6xl mb-4">✅</div>
-                <h3 className="text-2xl font-bold text-green-600 mb-2">Payment Uploaded Successfully!</h3>
+                <h3 className="text-2xl font-bold text-green-600 mb-2">Payment screenshot Uploaded Successfully!</h3>
                 <p className="text-gray-600">Your payment screenshot has been submitted successfully.</p>
                 <p className="text-gray-600">Redirecting back to dashboard...</p>
               </div>
@@ -509,7 +509,7 @@ const UserDashboard = () => {
                     <span className="text-4xl">💳</span>
                   </div>
                   <h3 className="text-3xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
-                    Payment Upload
+                    Payment Screenshot Upload
                   </h3>
                   <p className="text-gray-600 mb-6 text-lg leading-relaxed">
                     Securely upload your payment confirmation screenshots for quick processing and verification of your transactions.
@@ -518,7 +518,7 @@ const UserDashboard = () => {
                     onClick={(e) => handleAnimatedClick(() => { setShowPaymentUpload(true); setSelectedService(""); }, e)}
                     className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg font-semibold shadow-lg w-full max-w-xs mx-auto"
                   >
-                    Upload Payment
+                    Upload Payment screenshot
                   </button>
                 </div>
               </div>
