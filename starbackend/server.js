@@ -25,6 +25,7 @@ app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/applications", require("./routes/applicationRoutes"));
 app.use("/api/can", require("./routes/canRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
+app.use("/api/documents", require("./routes/documents"));
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/patta-system";

@@ -119,8 +119,8 @@ const LandDetailsStep = ({
               required
             >
               <option value="">Select Land Category</option>
-              <option value="Housing">Land for Housing plots/layouts</option>
-              <option value="Agriculture">Agricultural Land</option>
+              <option value="Land for Housing plots/layouts">Land for Housing plots/layouts</option>
+              <option value="Agricultural Land">Agricultural Land</option>
              
             </select>
           </div>

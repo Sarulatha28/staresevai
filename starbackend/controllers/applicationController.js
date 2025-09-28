@@ -3,43 +3,123 @@ const CAN = require('../models/CAN');
 const fs = require('fs');
 const path = require('path');
 
-// Submit application
+// Submit application with enhanced file handling
 exports.submitApplication = async (req, res) => {
+  let uploadedFiles = [];
+  
   try {
-    const applicationData = JSON.parse(req.body.applicationData);
-    const files = req.files;
-    const documentTypes = JSON.parse(req.body.documentTypes || '[]');
-
-    console.log('Files received:', files);
-    console.log('Document types:', documentTypes);
-
-    // Handle CAN submission if applicable
-    if (applicationData.hasCAN && applicationData.canNumber) {
-      const canRecord = new CAN({
-        name: applicationData.name,
-        canNumber: applicationData.canNumber
-      });
-      await canRecord.save();
+    console.log('=== START SUBMISSION DEBUG ===');
+    console.log('Request headers:', req.headers);
+    console.log('Request body keys:', Object.keys(req.body));
+    console.log('Files received:', req.files ? req.files.length : 0);
+    
+    // Log all body fields
+    for (const [key, value] of Object.entries(req.body)) {
+      console.log(`Body field ${key}:`, typeof value, value ? value.substring(0, 100) : 'empty');
     }
 
-    // Prepare documents array
-    const documents = files.map((file, index) => ({
-      fileName: file.filename,
-      originalName: file.originalname,
-      documentType: documentTypes[index] || 0,
-      uploadDate: new Date()
-    }));
+    // Check if applicationData exists
+    if (!req.body.applicationData) {
+      console.log('ERROR: applicationData is missing');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'applicationData is required' 
+      });
+    }
 
-    console.log('Prepared documents:', documents);
+    let applicationData;
+    try {
+      applicationData = JSON.parse(req.body.applicationData);
+      console.log('Successfully parsed applicationData');
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError.message);
+      console.log('Raw applicationData that failed:', req.body.applicationData);
+      
+      // Try to see if it's already an object
+      if (typeof req.body.applicationData === 'object') {
+        console.log('Using applicationData as object directly');
+        applicationData = req.body.applicationData;
+      } else {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid JSON in applicationData' 
+        });
+      }
+    }
 
-    // Create application
+    const files = req.files || [];
+    uploadedFiles = files;
+    console.log('Processing', files.length, 'files');
+
+    // Handle document types - FIXED: Only declare once
+    let documentTypes = [];
+    if (req.body.documentTypes) {
+      try {
+        documentTypes = JSON.parse(req.body.documentTypes);
+        console.log('Parsed document types:', documentTypes);
+      } catch (error) {
+        console.warn('Invalid documentTypes format, using empty array');
+        documentTypes = [];
+      }
+    }
+
+    console.log('Document types array length:', documentTypes.length);
+    console.log('Files array length:', files.length);
+
+    // Validate file sizes
+    for (const file of files) {
+      if (file.size > 400 * 1024) {
+        files.forEach(f => {
+          try {
+            fs.unlinkSync(f.path);
+          } catch (error) {
+            console.error('Error deleting file:', error);
+          }
+        });
+        return res.status(400).json({ 
+          success: false, 
+          message: `File ${file.originalname} exceeds 400KB size limit` 
+        });
+      }
+    }
+
+    // Handle CAN submission
+    if (applicationData.hasCAN && applicationData.canNumber) {
+      try {
+        const canRecord = new CAN({
+          name: applicationData.name,
+          canNumber: applicationData.canNumber
+        });
+        await canRecord.save();
+        console.log('CAN record saved');
+      } catch (canError) {
+        console.error('Error saving CAN record:', canError);
+      }
+    }
+
+    // Prepare documents array - FIXED: Only declare once
+    const documents = files.map((file, index) => {
+      const docType = documentTypes[index] || 0;
+      console.log(`File ${index}: ${file.originalname}, Type: ${docType}`);
+      return {
+        fileName: file.filename,
+        originalName: file.originalname,
+        documentType: docType,
+        uploadDate: new Date(),
+        fileSize: file.size
+      };
+    });
+
+    console.log('Final documents array:', documents);
+
+    // Create and save application
     const application = new Application({
       ...applicationData,
       documents: documents
     });
 
     await application.save();
-    console.log('Application saved with ID:', application._id);
+    console.log('Application saved successfully with ID:', application._id);
 
     res.json({ 
       success: true, 
@@ -48,8 +128,28 @@ exports.submitApplication = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Application submission error:', error);
-    res.status(500).json({ success: false, message: 'Failed to submit application' });
+    console.error('FINAL CATCH ERROR:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Clean up files
+    if (uploadedFiles.length > 0) {
+      uploadedFiles.forEach(file => {
+        try {
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+            console.log('Cleaned up file:', file.filename);
+          }
+        } catch (cleanupError) {
+          console.error('Error cleaning up file:', cleanupError);
+        }
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to submit application',
+      error: error.message 
+    });
   }
 };
 

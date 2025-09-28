@@ -79,10 +79,11 @@ const Navbar = ({ activeTab, setActiveTab }) => {
 };
 
 // Enhanced Application Details Modal with Full Review Sections
-// Enhanced Application Details Modal with Proper Document Handling
+// Complete Application Details Modal with All Sections
 const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
   const [status, setStatus] = useState(application.status || 'pending');
   const [activeSection, setActiveSection] = useState('personal');
+  const [downloading, setDownloading] = useState(null);
 
   const updateStatus = async () => {
     try {
@@ -106,14 +107,59 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
     }
   };
 
-  const downloadDocument = (document, fileName) => {
+  // FIXED Download Function
+  // FIXED Download Function
+const downloadDocument = async (doc, index) => {
+  setDownloading(index);
+  try {
+    const response = await fetch(`http://localhost:5000/api/documents/download/${doc.fileName}`);
+    
+    if (!response.ok) {
+      throw new Error('Download failed');
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = `http://localhost:5000/uploads/${document.fileName}`;
-    link.download = fileName || document.originalName || 'document';
-    link.target = '_blank';
+    link.href = url;
+    
+    // Get the original file extension
+    const fileExtension = doc.originalName?.split('.').pop() || doc.fileName?.split('.').pop() || '';
+    const fileName = doc.originalName || `document_${index + 1}.${fileExtension}`;
+    
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    console.log('Download successful for:', doc.fileName);
+  } catch (error) {
+    console.error('Download error:', error);
+    
+    // Fallback: Try direct download
+    try {
+      const downloadUrl = `http://localhost:5000/uploads/${doc.fileName}`;
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = doc.originalName || `document_${index + 1}`;
+      link.setAttribute('target', '_blank');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (fallbackError) {
+      console.error('Fallback download error:', fallbackError);
+      alert('Failed to download document. Please try again.');
+    }
+  } finally {
+    setDownloading(null);
+  }
+};
+
+  // View document in new tab
+  const viewDocument = (document) => {
+    const viewUrl = `http://localhost:5000/api/documents/view/${document.fileName}`;
+    window.open(viewUrl, '_blank');
   };
 
   const getDocumentTypeName = (docType) => {
@@ -128,6 +174,16 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
       8: 'Other Document'
     };
     return types[docType] || `Document Type ${docType}`;
+  };
+
+  const getFileIcon = (fileName) => {
+    if (fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i)) {
+      return '🖼️';
+    } else if (fileName.match(/\.pdf$/i)) {
+      return '📄';
+    } else {
+      return '📎';
+    }
   };
 
   if (!application) return null;
@@ -306,7 +362,7 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
             </div>
           )}
 
-          {/* Documents Section - UPDATED */}
+          {/* Documents Section */}
           {activeSection === 'documents' && (
             <div className="bg-gray-50 p-6 rounded-lg mb-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Uploaded Documents</h3>
@@ -321,44 +377,63 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {application.documents.map((document, index) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-lg transition-shadow">
-                      <div 
-                        className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                        onClick={() => window.open(`http://localhost:5000/uploads/${document.fileName}`, '_blank')}
-                      >
-                        {document.fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i) ? (
+                      <div className="text-center mb-4">
+                        <div className="text-4xl mb-2">{getFileIcon(document.fileName)}</div>
+                        <p className="text-sm font-medium text-gray-700 truncate">
+                          {document.originalName || `Document ${index + 1}`}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {getDocumentTypeName(document.documentType)}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
+                        </p>
+                      </div>
+
+                      {/* Preview for images */}
+                      {document.fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i) && (
+                        <div 
+                          className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center mb-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                          onClick={() => viewDocument(document)}
+                        >
                           <img 
                             src={`http://localhost:5000/uploads/${document.fileName}`} 
-                            alt={`Document ${index + 1}`}
+                            alt={`Preview ${index + 1}`}
                             className="max-h-full max-w-full object-contain"
                             onError={(e) => {
                               e.target.style.display = 'none';
                               e.target.nextSibling.style.display = 'flex';
                             }}
                           />
-                        ) : null}
-                        <div className={`${document.fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i) ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
-                          <div className="text-center">
-                            <div className="text-4xl mb-2">📄</div>
-                            <div className="text-sm text-gray-600">Document</div>
-                            <div className="text-xs text-gray-500 mt-1">{document.fileName.split('.').pop()}</div>
+                          <div className="hidden items-center justify-center">
+                            <span className="text-2xl">🖼️</span>
                           </div>
                         </div>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-medium text-gray-700 truncate mb-1">
-                          {document.originalName || `Document ${index + 1}`}
-                        </p>
-                        <p className="text-xs text-gray-500 mb-2">
-                          {getDocumentTypeName(document.documentType)}
-                        </p>
-                        <p className="text-xs text-gray-400 mb-3">
-                          Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
-                        </p>
+                      )}
+
+                      <div className="flex space-x-2">
+<button
+  onClick={() => downloadDocument(document, index)}
+  disabled={downloading === index}
+  className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors text-sm font-semibold flex items-center justify-center"
+>
+  {downloading === index ? (
+    <>
+      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Downloading...
+    </>
+  ) : (
+    'Download'
+  )}
+</button>
                         <button
-                          onClick={() => downloadDocument(document, document.originalName)}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm w-full"
+                          onClick={() => viewDocument(document)}
+                          className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
                         >
-                          Download Document
+                          View
                         </button>
                       </div>
                     </div>
@@ -425,7 +500,6 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
     </div>
   );
 };
-
 // CAN Details Modal (unchanged)
 const CANDetails = ({ canRecord, onClose, onDelete }) => {
   const [isDeleting, setIsDeleting] = useState(false);

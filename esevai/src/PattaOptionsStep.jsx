@@ -18,9 +18,9 @@ const PattaOptionsStep = ({
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <button
-          onClick={() => handleInputChange({ target: { name: 'pattaOption', value: 'transfer' } })}
+          onClick={() => handleInputChange({ target: { name: 'pattaOption', value: 'PATTA transfer' } })}
           className={`p-4 border rounded-lg transition ${
-            formData.pattaOption === 'transfer' 
+            formData.pattaOption === ' PATTA transfer' 
               ? 'border-blue-500 bg-blue-50' 
               : 'border-gray-300 hover:border-blue-300'
           }`}
@@ -42,9 +42,9 @@ const PattaOptionsStep = ({
         </button>
 
         <button
-          onClick={() => handleInputChange({ target: { name: 'pattaOption', value: 'naatham' } })}
+          onClick={() => handleInputChange({ target: { name: 'pattaOption', value: 'naatham patta transfer' } })}
           className={`p-4 border rounded-lg transition ${
-            formData.pattaOption === 'naatham' 
+            formData.pattaOption === 'naatham patta transfer' 
               ? 'border-blue-500 bg-blue-50' 
               : 'border-gray-300 hover:border-blue-300'
           }`}

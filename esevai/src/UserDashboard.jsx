@@ -43,10 +43,7 @@ const UserDashboard = () => {
     regDocNo: "",
     registeredDate: "",
     landCategory: "",
-    pattaNo: "",
-    landType: "",
-    extentHec: "",
-    extentAres: ""
+   
   });
 
   // Existing data arrays
@@ -189,68 +186,116 @@ const UserDashboard = () => {
   const handleReviewSubmit = () => setCurrentStep(6);
 
   const handleFinalSubmit = async () => {
-    try {
-      const requiredDocumentIds = [1,2,3,4,5];
-      const uploadedDocumentIds = uploadedImages.map(img => img.documentType);
-      const allRequiredUploaded = requiredDocumentIds.every(id => uploadedDocumentIds.includes(id));
-      if (!allRequiredUploaded) {
-        alert("Please upload all required documents (Documents 1-5)");
-        return;
-      }
-      const submissionData = { ...formData, hasCAN, canNumber };
-      const formDataToSend = new FormData();
-      formDataToSend.append('applicationData', JSON.stringify(submissionData));
-      uploadedImages.forEach(img => {
-        formDataToSend.append('documents', img.file);
-        formDataToSend.append('documentTypes', img.documentType);
-      });
-      const response = await fetch('http://localhost:5000/api/applications/submit', {
-        method: 'POST',
-        body: formDataToSend
-      });
-      const result = await response.json();
-      if (result.success) {
-        alert("Patta application submitted successfully!");
-        setShowSuccess(true);
-        setSelectedService("");
-        setHasCAN(null);
-        setCanNumber("");
-        setCurrentStep(1);
-        setUploadedImages([]);
-        setFormData({
-          name: "",
-          aadharName: "",
-          aadharNumber: "",
-          fatherName: "",
-          motherName: "",
-          dob: "",
-          address: "",
-          mobileNumber: "",
-          pattaOption: "",
-          district: "",
-          taluk: "",
-          village: "",
-          areaType: "",
-          reason: "",
-          surveyNo: "",
-          subDivisionNo: "",
-          sroName: "",
-          regDocNo: "",
-          registeredDate: "",
-          landCategory: "",
-          pattaNo: "",
-          landType: "",
-          extentHec: "",
-          extentAres: ""
-        });
-      } else {
-        alert("Failed to submit application: " + result.message);
-      }
-    } catch (error) {
-      console.error('Error submitting application:', error);
-      alert("Error submitting application. Please try again.");
+  try {
+    const requiredDocumentIds = [1, 2, 3, 4, 5];
+    const uploadedDocumentIds = uploadedImages.map(img => img.documentType);
+    const allRequiredUploaded = requiredDocumentIds.every(id => uploadedDocumentIds.includes(id));
+    
+    if (!allRequiredUploaded) {
+      alert("Please upload all required documents (Documents 1-5)");
+      return;
     }
-  };
+
+    const submissionData = { 
+      ...formData, 
+      hasCAN, 
+      canNumber 
+    };
+
+    const formDataToSend = new FormData();
+    
+    // Append application data as JSON string
+    formDataToSend.append('applicationData', JSON.stringify(submissionData));
+    
+    // Append document types as a single JSON array
+    const documentTypes = uploadedImages.map(img => img.documentType);
+    formDataToSend.append('documentTypes', JSON.stringify(documentTypes));
+    
+    // Append files
+    uploadedImages.forEach(img => {
+      formDataToSend.append('documents', img.file);
+    });
+
+    // Get token from localStorage
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      alert('Authentication token not found. Please login again.');
+      return;
+    }
+
+    console.log('Submitting application...');
+    console.log('Files count:', uploadedImages.length);
+    console.log('Document types:', documentTypes);
+    console.log('Token exists:', !!token);
+
+    // Log FormData contents for debugging
+    console.log('FormData contents:');
+    for (let [key, value] of formDataToSend.entries()) {
+      if (key === 'documents') {
+        console.log(`${key}:`, value.name, value.type, value.size);
+      } else {
+        console.log(`${key}:`, typeof value, value);
+      }
+    }
+
+    const response = await fetch('http://localhost:5000/api/applications/submit', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formDataToSend
+    });
+
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Server error response:', errorText);
+      throw new Error(`Server error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Response result:', result);
+
+    if (result.success) {
+      alert("Patta application submitted successfully!");
+      setShowSuccess(true);
+      setSelectedService("");
+      setHasCAN(null);
+      setCanNumber("");
+      setCurrentStep(1);
+      setUploadedImages([]);
+      setFormData({
+        name: "",
+        aadharName: "",
+        aadharNumber: "",
+        fatherName: "",
+        motherName: "",
+        dob: "",
+        address: "",
+        mobileNumber: "",
+        pattaOption: "",
+        district: "",
+        taluk: "",
+        village: "",
+        areaType: "",
+        reason: "",
+        surveyNo: "",
+        subDivisionNo: "",
+        sroName: "",
+        regDocNo: "",
+        registeredDate: "",
+        landCategory: "",
+      });
+    } else {
+      alert("Failed to submit application: " + (result.message || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error submitting application:', error);
+    alert("Error submitting application. Please try again. Error: " + error.message);
+  }
+};
 
   const handleReasonChange = (reasonValue, isChecked) => {
     setFormData(prev => {
