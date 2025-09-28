@@ -79,6 +79,7 @@ const Navbar = ({ activeTab, setActiveTab }) => {
 };
 
 // Enhanced Application Details Modal with Full Review Sections
+// Enhanced Application Details Modal with Proper Document Handling
 const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
   const [status, setStatus] = useState(application.status || 'pending');
   const [activeSection, setActiveSection] = useState('personal');
@@ -105,19 +106,29 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
     }
   };
 
-  const downloadImage = (imageUrl, fileName) => {
+  const downloadDocument = (document, fileName) => {
     const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = fileName || 'document';
+    link.href = `http://localhost:5000/uploads/${document.fileName}`;
+    link.download = fileName || document.originalName || 'document';
     link.target = '_blank';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  
-    
-   
+  const getDocumentTypeName = (docType) => {
+    const types = {
+      1: 'Aadhar Card',
+      2: 'Patta Document',
+      3: 'Survey Document',
+      4: 'Registration Document',
+      5: 'Identity Proof',
+      6: 'Address Proof',
+      7: 'Land Document',
+      8: 'Other Document'
+    };
+    return types[docType] || `Document Type ${docType}`;
+  };
 
   if (!application) return null;
 
@@ -129,9 +140,17 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Application Details</h2>
               <p className="text-gray-600">Application ID: {application._id}</p>
+              <p className="text-gray-600">Status: 
+                <span className={`ml-2 px-2 py-1 rounded text-sm font-medium ${
+                  application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                  application.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                  'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {application.status || 'pending'}
+                </span>
+              </p>
             </div>
             <div className="flex items-center space-x-4">
-              
               <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">
                 ✕
               </button>
@@ -161,26 +180,48 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
           {activeSection === 'personal' && (
             <div className="bg-gray-50 p-6 rounded-lg mb-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div><strong className="text-gray-700">Full Name:</strong> {application.name || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Aadhar Name:</strong> {application.aadharName || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Aadhar Number:</strong> {application.aadharNumber || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Mobile Number:</strong> {application.mobileNumber || "Not provided"}</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Full Name:</strong>
+                    <span className="text-gray-900">{application.name || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Aadhar Name:</strong>
+                    <span className="text-gray-900">{application.aadharName || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Aadhar Number:</strong>
+                    <span className="text-gray-900">{application.aadharNumber || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Mobile Number:</strong>
+                    <span className="text-gray-900">{application.mobileNumber || "Not provided"}</span>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <div><strong className="text-gray-700">Father's Name:</strong> {application.fatherName || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Mother's Name:</strong> {application.motherName || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Date of Birth:</strong> {application.dob || "Not provided"}</div>
+                <div className="space-y-4">
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Father's Name:</strong>
+                    <span className="text-gray-900">{application.fatherName || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Mother's Name:</strong>
+                    <span className="text-gray-900">{application.motherName || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Date of Birth:</strong>
+                    <span className="text-gray-900">
+                      {application.dob ? new Date(application.dob).toLocaleDateString() : "Not provided"}
+                    </span>
+                  </div>
                   {application.address && (
-                <div className="mt-4">
-                  <strong className="text-gray-700">Address:</strong>
-                  <p className="text-gray-900 mt-1">{application.address}</p>
-                </div>
-              )}
+                    <div>
+                      <strong className="text-gray-700 block mb-1">Address:</strong>
+                      <p className="text-gray-900 mt-1 whitespace-pre-wrap">{application.address}</p>
+                    </div>
+                  )}
                 </div>
               </div>
-              
             </div>
           )}
 
@@ -188,76 +229,136 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
           {activeSection === 'patta' && (
             <div className="bg-gray-50 p-6 rounded-lg mb-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Patta Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div><strong className="text-gray-700">Service Type:</strong> {application.pattaOption || "Not provided"}</div>
-                  <div><strong className="text-gray-700">District:</strong> {application.district || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Taluk:</strong> {application.taluk || "Not provided"}</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Service Type:</strong>
+                    <span className="text-gray-900">{application.pattaOption || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">District:</strong>
+                    <span className="text-gray-900">{application.district || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Taluk:</strong>
+                    <span className="text-gray-900">{application.taluk || "Not provided"}</span>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <div><strong className="text-gray-700">Village:</strong> {application.village || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Area Type:</strong> {application.areaType || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Reason:</strong> {application.reason || "Not provided"}</div>
+                <div className="space-y-4">
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Village:</strong>
+                    <span className="text-gray-900">{application.village || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Area Type:</strong>
+                    <span className="text-gray-900">{application.areaType || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Reason:</strong>
+                    <span className="text-gray-900">{application.reason || "Not provided"}</span>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {/* Land Details Section */}
-          {/* Land Details Section */}
-{activeSection === 'land' && (
-  <div className="bg-gray-50 p-6 rounded-lg mb-6">
-    <h3 className="text-xl font-semibold text-gray-900 mb-4">Land Details</h3>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="space-y-3">
-        <div><strong className="text-gray-700">Survey No:</strong> {application.surveyNo || "Not provided"}</div>
-        <div><strong className="text-gray-700">Sub Division No:</strong> {application.subDivisionNo || "Not provided"}</div>
-        <div><strong className="text-gray-700">Name of SRO:</strong> {application.sroName || "Not provided"}</div>
-      </div>
-      <div className="space-y-3">
-        <div>
-          <strong className="text-gray-700">Registration Doc No:</strong>{" "}
-          {application.regDocNo && application.docYear 
-            ? `${application.regDocNo}/${application.docYear}`
-            : application.regDocNo || "Not provided"
-          }
-        </div>
-        <div><strong className="text-gray-700">Registered Date:</strong> {application.registeredDate || "Not provided"}</div>
-        <div><strong className="text-gray-700">Land Category:</strong> {application.landCategory || "Not provided"}</div>
-      </div>
-    </div>
-  </div>
-)}
+          {activeSection === 'land' && (
+            <div className="bg-gray-50 p-6 rounded-lg mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Land Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Survey No:</strong>
+                    <span className="text-gray-900">{application.surveyNo || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Sub Division No:</strong>
+                    <span className="text-gray-900">{application.subDivisionNo || "Not provided"}</span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Name of SRO:</strong>
+                    <span className="text-gray-900">{application.sroName || "Not provided"}</span>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Registration Doc No:</strong>
+                    <span className="text-gray-900">
+                      {application.regDocNo && application.docYear 
+                        ? `${application.regDocNo}/${application.docYear}`
+                        : application.regDocNo || "Not provided"
+                      }
+                    </span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Registered Date:</strong>
+                    <span className="text-gray-900">
+                      {application.registeredDate ? new Date(application.registeredDate).toLocaleDateString() : "Not provided"}
+                    </span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700 block mb-1">Land Category:</strong>
+                    <span className="text-gray-900">{application.landCategory || "Not provided"}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-          {/* Documents Section */}
+          {/* Documents Section - UPDATED */}
           {activeSection === 'documents' && (
             <div className="bg-gray-50 p-6 rounded-lg mb-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Uploaded Documents</h3>
-              <p className="mb-4"><strong>Total Documents:</strong> {application.uploadedImages?.length || 0}</p>
+              <p className="mb-4 text-lg">
+                <strong>Total Documents:</strong> 
+                <span className="ml-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                  {application.documents?.length || 0}
+                </span>
+              </p>
               
-              {application.uploadedImages && application.uploadedImages.length > 0 ? (
+              {application.documents && application.documents.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {application.uploadedImages.map((image, index) => (
+                  {application.documents.map((document, index) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-lg transition-shadow">
                       <div 
                         className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-3 cursor-pointer hover:bg-gray-200 transition-colors"
-                        onClick={() => window.open(`http://localhost:5000/uploads/${image.name}`, '_blank')}
+                        onClick={() => window.open(`http://localhost:5000/uploads/${document.fileName}`, '_blank')}
                       >
-                        <img 
-                          src={`http://localhost:5000/uploads/${image.name}`} 
-                          alt={`Document ${index + 1}`}
-                          className="max-h-full max-w-full object-contain"
-                        />
+                        {document.fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i) ? (
+                          <img 
+                            src={`http://localhost:5000/uploads/${document.fileName}`} 
+                            alt={`Document ${index + 1}`}
+                            className="max-h-full max-w-full object-contain"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div className={`${document.fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i) ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
+                          <div className="text-center">
+                            <div className="text-4xl mb-2">📄</div>
+                            <div className="text-sm text-gray-600">Document</div>
+                            <div className="text-xs text-gray-500 mt-1">{document.fileName.split('.').pop()}</div>
+                          </div>
+                        </div>
                       </div>
                       <div className="text-center">
-                        <p className="text-sm font-medium text-gray-700 truncate mb-2">
-                          {image.originalName || `Document ${index + 1}`}
+                        <p className="text-sm font-medium text-gray-700 truncate mb-1">
+                          {document.originalName || `Document ${index + 1}`}
+                        </p>
+                        <p className="text-xs text-gray-500 mb-2">
+                          {getDocumentTypeName(document.documentType)}
+                        </p>
+                        <p className="text-xs text-gray-400 mb-3">
+                          Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
                         </p>
                         <button
-                          onClick={() => downloadImage(`http://localhost:5000/uploads/${image.name}`, image.originalName)}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                          onClick={() => downloadDocument(document, document.originalName)}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm w-full"
                         >
-                          Download
+                          Download Document
                         </button>
                       </div>
                     </div>
@@ -265,17 +366,50 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-red-500 text-lg">No documents uploaded</p>
+                  <div className="text-6xl mb-4">📂</div>
+                  <p className="text-red-500 text-lg font-semibold">No documents uploaded</p>
+                  <p className="text-gray-500 mt-2">No documents were uploaded with this application</p>
                 </div>
               )}
             </div>
           )}
 
-        
+          {/* Status Update Section */}
+          <div className="bg-white border-t border-gray-200 pt-6 mt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <label htmlFor="status" className="text-sm font-medium text-gray-700">
+                  Update Status:
+                </label>
+                <select
+                  id="status"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+                <button
+                  onClick={updateStatus}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm"
+                >
+                  Update Status
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Action Buttons */}
           <div className="flex justify-between items-center pt-6 border-t border-gray-200">
             <div className="text-sm text-gray-500">
               Applied on: {new Date(application.createdAt).toLocaleDateString()}
+              {application.updatedAt && (
+                <span className="ml-4">
+                  Last updated: {new Date(application.updatedAt).toLocaleDateString()}
+                </span>
+              )}
             </div>
             <div className="flex space-x-3">
               <button
@@ -639,14 +773,13 @@ const AdminHomepage = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p><strong>Service Type:</strong> {app.pattaOption || "N/A"}</p>
-                  <p><strong>Survey No:</strong> {app.surveyNo || "N/A"}</p>
-                  <p><strong>Documents:</strong> {app.uploadedImages?.length || 0} files</p>
-                </div>
-               
-              </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+  <div>
+    <p><strong>Service Type:</strong> {app.pattaOption || "N/A"}</p>
+    <p><strong>Survey No:</strong> {app.surveyNo || "N/A"}</p>
+    <p><strong>Documents:</strong> {app.documents?.length || 0} files</p> {/* Updated this line */}
+  </div>
+</div>
 
               <div className="flex space-x-3">
                 <button
