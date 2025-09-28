@@ -35,12 +35,10 @@ const applicationSchema = new mongoose.Schema({
   subDivisionNo: String,
   sroName: String,
   regDocNo: String,
+  docYear: String,  // Correct field name
   registeredDate: Date,
   landCategory: String,
-  pattaNo: String,
-  landType: String,
-  extentHec: String,
-  extentAres: String,
+  
   
   // Documents
   documents: [documentSchema],

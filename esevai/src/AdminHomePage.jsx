@@ -115,21 +115,9 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
     document.body.removeChild(link);
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pending' },
-      approved: { color: 'bg-green-100 text-green-800', label: 'Approved' },
-      rejected: { color: 'bg-red-100 text-red-800', label: 'Rejected' },
-      in_review: { color: 'bg-blue-100 text-blue-800', label: 'In Review' }
-    };
+  
     
-    const config = statusConfig[status] || statusConfig.pending;
-    return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
-        {config.label}
-      </span>
-    );
-  };
+   
 
   if (!application) return null;
 
@@ -216,33 +204,30 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
           )}
 
           {/* Land Details Section */}
-          {activeSection === 'land' && (
-            <div className="bg-gray-50 p-6 rounded-lg mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Land Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div><strong className="text-gray-700">Survey No:</strong> {application.surveyNo || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Sub Division No:</strong> {application.subDivisionNo || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Name of SRO :</strong> {application.sroName || "Not provided"}</div>
-                  
-                </div>
-                <div className="space-y-3">
-  <div>
-    <strong className="text-gray-700">Registration Doc No:</strong>{" "}
-    {application?.regDocNo && application?.docYear 
-      ? `${application.regDocNo}/${application.docYear}`
-      : application?.landDetails?.regDocNo && application?.landDetails?.docYear
-      ? `${application.landDetails.regDocNo}/${application.landDetails.docYear}`
-      : application?.registrationNumber || application?.docNumber || "Not provided"
-    }
+          {/* Land Details Section */}
+{activeSection === 'land' && (
+  <div className="bg-gray-50 p-6 rounded-lg mb-6">
+    <h3 className="text-xl font-semibold text-gray-900 mb-4">Land Details</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-3">
+        <div><strong className="text-gray-700">Survey No:</strong> {application.surveyNo || "Not provided"}</div>
+        <div><strong className="text-gray-700">Sub Division No:</strong> {application.subDivisionNo || "Not provided"}</div>
+        <div><strong className="text-gray-700">Name of SRO:</strong> {application.sroName || "Not provided"}</div>
+      </div>
+      <div className="space-y-3">
+        <div>
+          <strong className="text-gray-700">Registration Doc No:</strong>{" "}
+          {application.regDocNo && application.docYear 
+            ? `${application.regDocNo}/${application.docYear}`
+            : application.regDocNo || "Not provided"
+          }
+        </div>
+        <div><strong className="text-gray-700">Registered Date:</strong> {application.registeredDate || "Not provided"}</div>
+        <div><strong className="text-gray-700">Land Category:</strong> {application.landCategory || "Not provided"}</div>
+      </div>
+    </div>
   </div>
-
-                  <div><strong className="text-gray-700">Registered Date:</strong> {application.registeredDate || "Not provided"}</div>
-                  <div><strong className="text-gray-700">Land Category:</strong> {application.landCategory || "Not provided"}</div>
-                </div>
-              </div>
-            </div>
-          )}
+)}
 
           {/* Documents Section */}
           {activeSection === 'documents' && (
@@ -657,12 +642,10 @@ const AdminHomepage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <p><strong>Service Type:</strong> {app.pattaOption || "N/A"}</p>
-                  <p><strong>District:</strong> {app.district || "N/A"}</p>
-                </div>
-                <div>
                   <p><strong>Survey No:</strong> {app.surveyNo || "N/A"}</p>
                   <p><strong>Documents:</strong> {app.uploadedImages?.length || 0} files</p>
                 </div>
+               
               </div>
 
               <div className="flex space-x-3">
@@ -707,11 +690,7 @@ const AdminHomepage = () => {
                   <h2 className="text-xl font-bold text-gray-900 mb-1">{can.name}</h2>
                   <p className="text-blue-600 font-semibold text-lg">CAN: {can.canNumber}</p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  can.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {can.status}
-                </span>
+               
               </div>
               
               <div className="space-y-2 mb-4">
@@ -768,13 +747,7 @@ const AdminHomepage = () => {
                   <h2 className="text-xl font-bold text-gray-900 mb-1">{payment.name}</h2>
                   <p className="text-purple-600 font-semibold">Mobile: {payment.mobileNumber}</p>
                 </div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  payment.status === "completed" ? "bg-green-100 text-green-800" :
-                  payment.status === "failed" ? "bg-red-100 text-red-800" :
-                  "bg-yellow-100 text-yellow-800"
-                }`}>
-                  {payment.status || "pending"}
-                </span>
+                
               </div>
               
               <div className="space-y-2 mb-4">

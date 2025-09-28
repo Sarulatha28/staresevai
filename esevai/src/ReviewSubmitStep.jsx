@@ -44,15 +44,13 @@ const ReviewSubmitStep = ({ formData, uploadedImages, goToPreviousStep, handleFi
       <strong>Registration Doc No:</strong>{" "}
       {formData.regDocNo && formData.docYear 
         ? `${formData.regDocNo}/${formData.docYear}`
-        : "Not provided"
+        : formData.regDocNo || "Not provided"
       }
     </div>
     <div><strong>Registered Date:</strong> {formData.registeredDate || "Not provided"}</div>
     <div><strong>Land Category:</strong> {formData.landCategory || "Not provided"}</div>
   </div>
-
-      </div>
-
+</div>
       {/* Uploaded Documents Section */}
       <div className="bg-gray-50 p-4 rounded-lg mb-6">
         <h4 className="font-semibold text-lg mb-3 text-blue-800">Uploaded Documents</h4>

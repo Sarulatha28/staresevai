@@ -64,33 +64,33 @@ const LandDetailsStep = ({
           </div>
 
           {/* Document Number and Year */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Document Number and Year *
-            </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                name="regDocNo"
-                value={formData.regDocNo || ""}
-                onChange={handleInputChange}
-                placeholder="Doc No"
-                className="w-24 border border-gray-300 rounded-lg px-3 py-3 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-              <span className="text-gray-500 font-bold text-lg">/</span>
-              <input
-                type="text"
-                name="docYear"
-                value={formData.docYear || ""}
-                onChange={handleInputChange}
-                placeholder="Year"
-                className="w-20 border border-gray-300 rounded-lg px-3 py-3 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-          </div>
-
+         {/* Document Number and Year */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Document Number and Year *
+  </label>
+  <div className="flex items-center space-x-2">
+    <input
+      type="text"
+      name="regDocNo"
+      value={formData.regDocNo || ""}
+      onChange={handleInputChange}
+      placeholder="Doc No"
+      className="w-24 border border-gray-300 rounded-lg px-3 py-3 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      required
+    />
+    <span className="text-gray-500 font-bold text-lg">/</span>
+    <input
+      type="text"
+      name="docYear"
+      value={formData.docYear || ""}
+      onChange={handleInputChange}
+      placeholder="Year"
+      className="w-20 border border-gray-300 rounded-lg px-3 py-3 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      required
+    />
+  </div>
+</div>
           {/* Registered Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
