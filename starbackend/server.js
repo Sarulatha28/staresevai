@@ -27,6 +27,15 @@ app.use("/api/can", require("./routes/canRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/documents", require("./routes/documents"));
 
+app.use((error, req, res, next) => {
+  console.error('Server Error:', error);
+  res.status(500).json({ 
+    success: false, 
+    message: 'Internal server error',
+    error: error.message 
+  });
+});
+
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/patta-system";
 

@@ -109,6 +109,7 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
 
   // FIXED Download Function
   // FIXED Download Function
+// FIXED Download Function - Force PDF download
 const downloadDocument = async (doc, index) => {
   setDownloading(index);
   try {
@@ -123,9 +124,10 @@ const downloadDocument = async (doc, index) => {
     const link = document.createElement('a');
     link.href = url;
     
-    // Get the original file extension
-    const fileExtension = doc.originalName?.split('.').pop() || doc.fileName?.split('.').pop() || '';
-    const fileName = doc.originalName || `document_${index + 1}.${fileExtension}`;
+    // Force PDF extension for all downloads
+    const fileName = doc.originalName?.endsWith('.pdf') 
+      ? doc.originalName 
+      : `${doc.originalName || `document_${index + 1}`}.pdf`;
     
     link.download = fileName;
     document.body.appendChild(link);
@@ -137,12 +139,18 @@ const downloadDocument = async (doc, index) => {
   } catch (error) {
     console.error('Download error:', error);
     
-    // Fallback: Try direct download
+    // Fallback: Try direct download with PDF extension
     try {
       const downloadUrl = `http://localhost:5000/uploads/${doc.fileName}`;
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = doc.originalName || `document_${index + 1}`;
+      
+      // Force PDF extension
+      const fileName = doc.originalName?.endsWith('.pdf') 
+        ? doc.originalName 
+        : `${doc.originalName || `document_${index + 1}`}.pdf`;
+      
+      link.download = fileName;
       link.setAttribute('target', '_blank');
       document.body.appendChild(link);
       link.click();
@@ -155,7 +163,6 @@ const downloadDocument = async (doc, index) => {
     setDownloading(null);
   }
 };
-
   // View document in new tab
   const viewDocument = (document) => {
     const viewUrl = `http://localhost:5000/api/documents/view/${document.fileName}`;

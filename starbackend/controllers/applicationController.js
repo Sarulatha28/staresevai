@@ -51,7 +51,7 @@ exports.submitApplication = async (req, res) => {
     uploadedFiles = files;
     console.log('Processing', files.length, 'files');
 
-    // Handle document types - FIXED: Only declare once
+    // Handle document types
     let documentTypes = [];
     if (req.body.documentTypes) {
       try {
@@ -97,7 +97,7 @@ exports.submitApplication = async (req, res) => {
       }
     }
 
-    // Prepare documents array - FIXED: Only declare once
+    // Prepare documents array
     const documents = files.map((file, index) => {
       const docType = documentTypes[index] || 0;
       console.log(`File ${index}: ${file.originalname}, Type: ${docType}`);
@@ -180,23 +180,55 @@ exports.getApplicationById = async (req, res) => {
   }
 };
 
-// Update application status
+// Update application status - FIXED VERSION
 exports.updateApplicationStatus = async (req, res) => {
   try {
+    const { id } = req.params;
     const { status } = req.body;
-    const application = await Application.findByIdAndUpdate(
-      req.params.id,
-      { status, updatedAt: new Date() },
-      { new: true }
-    );
-    
-    if (!application) {
-      return res.status(404).json({ success: false, message: 'Application not found' });
+
+    console.log('Updating application status:', { id, status });
+
+    // Validate status
+    const validStatuses = ['pending', 'in review', 'approved', 'rejected', 'completed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid status. Must be one of: pending, in review, approved, rejected, completed' 
+      });
     }
+
+    // Find and update application
+    const application = await Application.findByIdAndUpdate(
+      id,
+      { 
+        status: status,
+        updatedAt: new Date() 
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!application) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Application not found' 
+      });
+    }
+
+    console.log('Application status updated successfully:', application._id);
     
-    res.json({ success: true, application });
+    res.json({ 
+      success: true, 
+      message: 'Application status updated successfully',
+      application 
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to update application' });
+    console.error('Error updating application status:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to update application status',
+      error: error.message 
+    });
   }
 };
 

@@ -23,14 +23,22 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 400 * 1024 }
+  limits: { fileSize: 400 * 1024 },
+  fileFilter: (req, file, cb) => {
+    // Check if file is PDF
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'), false);
+    }
+  }
 });
 
 // Routes
 router.post('/submit', upload.array('documents'), submitApplication);
 router.get('/all', getAllApplications);
 router.get('/:id', getApplicationById);
-router.put('/:id/status', updateApplicationStatus);
+router.put('/:id/status', updateApplicationStatus); // Use the controller function
 router.delete('/:id', deleteApplication);
 
 module.exports = router;
