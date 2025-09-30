@@ -38,7 +38,7 @@ const upload = multer({
 router.post('/submit', upload.array('documents'), submitApplication);
 router.get('/all', getAllApplications);
 router.get('/:id', getApplicationById);
-router.put('/:id/status', updateApplicationStatus); // Use the controller function
+router.put('/:id/status', updateApplicationStatus);
 router.delete('/:id', deleteApplication);
 
 module.exports = router;

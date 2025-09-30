@@ -79,7 +79,6 @@ const Navbar = ({ activeTab, setActiveTab }) => {
 };
 
 // Enhanced Application Details Modal with Full Review Sections
-// Complete Application Details Modal with All Sections
 const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
   const [status, setStatus] = useState(application.status || 'pending');
   const [activeSection, setActiveSection] = useState('personal');
@@ -107,62 +106,54 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
     }
   };
 
-  // FIXED Download Function
-  // FIXED Download Function
-// FIXED Download Function - Force PDF download
-const downloadDocument = async (doc, index) => {
-  setDownloading(index);
-  try {
-    const response = await fetch(`http://localhost:5000/api/documents/download/${doc.fileName}`);
-    
-    if (!response.ok) {
-      throw new Error('Download failed');
-    }
-
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    
-    // Force PDF extension for all downloads
-    const fileName = doc.originalName?.endsWith('.pdf') 
-      ? doc.originalName 
-      : `${doc.originalName || `document_${index + 1}`}.pdf`;
-    
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    
-    console.log('Download successful for:', doc.fileName);
-  } catch (error) {
-    console.error('Download error:', error);
-    
-    // Fallback: Try direct download with PDF extension
+  // Download Function
+  const downloadDocument = async (doc, index) => {
+    setDownloading(index);
     try {
-      const downloadUrl = `http://localhost:5000/uploads/${doc.fileName}`;
-      const link = document.createElement('a');
-      link.href = downloadUrl;
+      const response = await fetch(`http://localhost:5000/api/documents/download/${doc.fileName}`);
       
-      // Force PDF extension
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
       const fileName = doc.originalName?.endsWith('.pdf') 
         ? doc.originalName 
         : `${doc.originalName || `document_${index + 1}`}.pdf`;
       
       link.download = fileName;
-      link.setAttribute('target', '_blank');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (fallbackError) {
-      console.error('Fallback download error:', fallbackError);
-      alert('Failed to download document. Please try again.');
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('Download error:', error);
+      try {
+        const downloadUrl = `http://localhost:5000/uploads/${doc.fileName}`;
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        const fileName = doc.originalName?.endsWith('.pdf') 
+          ? doc.originalName 
+          : `${doc.originalName || `document_${index + 1}`}.pdf`;
+        link.download = fileName;
+        link.setAttribute('target', '_blank');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (fallbackError) {
+        console.error('Fallback download error:', fallbackError);
+        alert('Failed to download document. Please try again.');
+      }
+    } finally {
+      setDownloading(null);
     }
-  } finally {
-    setDownloading(null);
-  }
-};
+  };
+
   // View document in new tab
   const viewDocument = (document) => {
     const viewUrl = `http://localhost:5000/api/documents/view/${document.fileName}`;
@@ -203,8 +194,6 @@ const downloadDocument = async (doc, index) => {
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Application Details</h2>
               <p className="text-gray-600">Application ID: {application._id}</p>
-              
-              
             </div>
             <div className="flex items-center space-x-4">
               <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">
@@ -412,23 +401,23 @@ const downloadDocument = async (doc, index) => {
                       )}
 
                       <div className="flex space-x-2">
-<button
-  onClick={() => downloadDocument(document, index)}
-  disabled={downloading === index}
-  className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors text-sm font-semibold flex items-center justify-center"
->
-  {downloading === index ? (
-    <>
-      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      Downloading...
-    </>
-  ) : (
-    'Download'
-  )}
-</button>
+                        <button
+                          onClick={() => downloadDocument(document, index)}
+                          disabled={downloading === index}
+                          className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors text-sm font-semibold flex items-center justify-center"
+                        >
+                          {downloading === index ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Downloading...
+                            </>
+                          ) : (
+                            'Download'
+                          )}
+                        </button>
                         <button
                           onClick={() => viewDocument(document)}
                           className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
@@ -448,9 +437,6 @@ const downloadDocument = async (doc, index) => {
               )}
             </div>
           )}
-
-          {/* Status Update Section */}
-         
 
           {/* Action Buttons */}
           <div className="flex justify-between items-center pt-6 border-t border-gray-200">
@@ -476,7 +462,8 @@ const downloadDocument = async (doc, index) => {
     </div>
   );
 };
-// CAN Details Modal (unchanged)
+
+// CAN Details Modal
 const CANDetails = ({ canRecord, onClose, onDelete }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -561,7 +548,7 @@ const CANDetails = ({ canRecord, onClose, onDelete }) => {
   );
 };
 
-// Payment Details Modal (unchanged)
+// Payment Details Modal
 const PaymentDetails = ({ payment, onClose, onDelete }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -680,6 +667,7 @@ const AdminHomepage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('applications');
+  const [updatingStatus, setUpdatingStatus] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -718,6 +706,36 @@ const AdminHomepage = () => {
       setError('Error fetching data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Update application status
+  const updateApplicationStatus = async (applicationId, newStatus) => {
+    setUpdatingStatus(applicationId);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/applications/${applicationId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // Update the application status in the local state immediately
+        setApplications(prev => prev.map(app => 
+          app._id === applicationId ? { ...app, status: newStatus } : app
+        ));
+      } else {
+        alert('Failed to update status');
+      }
+    } catch (error) {
+      alert('Error updating status');
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
@@ -788,12 +806,20 @@ const AdminHomepage = () => {
     }
   };
 
-  const updateApplicationStatus = (applicationId, newStatus) => {
-    setApplications(prev => prev.map(app => 
-      app._id === applicationId ? { ...app, status: newStatus } : app
-    ));
+  // Get status badge color
+  const getStatusBadge = (status) => {
+    const statusColors = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      completed: 'bg-green-100 text-green-800',
+      'in review': 'bg-blue-100 text-blue-800',
+      approved: 'bg-green-100 text-green-800',
+      rejected: 'bg-red-100 text-red-800'
+    };
+    
+    return statusColors[status] || 'bg-gray-100 text-gray-800';
   };
 
+  // Render Applications with Cards and Status Dropdown
   const renderApplications = () => (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -802,45 +828,91 @@ const AdminHomepage = () => {
           Total: {applications.length}
         </span>
       </div>
+      
       {applications.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <p className="text-gray-500 text-lg">No applications found</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {applications.map((app) => (
-            <div key={app._id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+            <div key={app._id} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              {/* Header with Name and Status */}
               <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">{app.name || "N/A"}</h2>
-                  <p className="text-gray-600">Aadhar: {app.aadharNumber || "N/A"}</p>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-gray-900 truncate">{app.name || "N/A"}</h2>
+                  <p className="text-gray-600 text-sm mt-1">Aadhar: {app.aadharNumber || "N/A"}</p>
                 </div>
-                <div className="flex items-center space-x-2">
-                 
-                  <span className="text-sm text-gray-500">
-                    {new Date(app.createdAt).toLocaleDateString()}
+                <div className="ml-2">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(app.status)}`}>
+                    {app.status || 'pending'}
                   </span>
                 </div>
               </div>
               
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-  <div>
-    <p><strong>Service Type:</strong> {app.pattaOption || "N/A"}</p>
-    <p><strong>Survey No:</strong> {app.surveyNo || "N/A"}</p>
-    <p><strong>Documents:</strong> {app.documents?.length || 0} files</p> {/* Updated this line */}
-  </div>
-</div>
+              {/* Application Details */}
+              <div className="space-y-3 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Service Type:</span>
+                  <span className="font-medium text-gray-900">{app.pattaOption || "N/A"}</span>
+                </div>
+                
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">District:</span>
+                  <span className="font-medium text-gray-900">{app.district || "N/A"}</span>
+                </div>
+                
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Survey No:</span>
+                  <span className="font-medium text-gray-900">{app.surveyNo || "N/A"}</span>
+                </div>
+                
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Documents:</span>
+                  <span className="font-medium text-gray-900">{app.documents?.length || 0} files</span>
+                </div>
+                
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Applied:</span>
+                  <span className="font-medium text-gray-900">
+                    {new Date(app.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
 
-              <div className="flex space-x-3">
+              {/* Status Update Dropdown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Update Status:
+                </label>
+                <select
+                  value={app.status || 'pending'}
+                  onChange={(e) => updateApplicationStatus(app._id, e.target.value)}
+                  disabled={updatingStatus === app._id}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in review">In Review</option>
+                  <option value="approved">Approved</option>
+                  <option value="completed">Completed</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+                {updatingStatus === app._id && (
+                  <p className="text-xs text-blue-600 mt-1">Updating...</p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-2">
                 <button
                   onClick={() => setSelectedApplication(app)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105"
+                  className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 text-sm font-semibold"
                 >
                   View Full Details
                 </button>
                 <button
                   onClick={() => deleteApplication(app._id)}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105"
+                  className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105 text-sm font-semibold"
                 >
                   Delete
                 </button>
@@ -873,7 +945,6 @@ const AdminHomepage = () => {
                   <h2 className="text-xl font-bold text-gray-900 mb-1">{can.name}</h2>
                   <p className="text-blue-600 font-semibold text-lg">CAN: {can.canNumber}</p>
                 </div>
-               
               </div>
               
               <div className="space-y-2 mb-4">
@@ -930,7 +1001,6 @@ const AdminHomepage = () => {
                   <h2 className="text-xl font-bold text-gray-900 mb-1">{payment.name}</h2>
                   <p className="text-purple-600 font-semibold">Mobile: {payment.mobileNumber}</p>
                 </div>
-                
               </div>
               
               <div className="space-y-2 mb-4">

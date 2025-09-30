@@ -181,6 +181,7 @@ exports.getApplicationById = async (req, res) => {
 };
 
 // Update application status - FIXED VERSION
+// Update application status
 exports.updateApplicationStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -189,11 +190,11 @@ exports.updateApplicationStatus = async (req, res) => {
     console.log('Updating application status:', { id, status });
 
     // Validate status
-    const validStatuses = ['pending', 'in review', 'approved', 'rejected', 'completed'];
+    const validStatuses = ['pending', 'completed', 'in review', 'approved', 'rejected'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Invalid status. Must be one of: pending, in review, approved, rejected, completed' 
+        message: 'Invalid status' 
       });
     }
 

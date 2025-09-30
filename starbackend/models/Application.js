@@ -44,8 +44,12 @@ const applicationSchema = new mongoose.Schema({
   documents: [documentSchema],
   
   // Status
-  status: { type: String, default: 'pending' },
-  
+ status: { 
+    type: String, 
+    default: 'pending',
+    enum: ['pending', 'completed', 'in review', 'approved', 'rejected']
+  },
+    
   // Timestamps
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
