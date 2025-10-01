@@ -8,6 +8,8 @@ import LandDetailsStep from "./LandDetailsStep";
 import DocumentUploadStep from "./DocumentUploadStep";
 import ReviewSubmitStep from "./ReviewSubmitStep";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const UserDashboard = () => {
   const navigate = useNavigate();
   const [selectedService, setSelectedService] = useState("");
@@ -21,6 +23,7 @@ const UserDashboard = () => {
   const [paymentMobile, setPaymentMobile] = useState("");
   const [paymentFile, setPaymentFile] = useState(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [connectionError, setConnectionError] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -43,7 +46,6 @@ const UserDashboard = () => {
     regDocNo: "",
     registeredDate: "",
     landCategory: "",
-   
   });
 
   // Existing data arrays
@@ -57,47 +59,43 @@ const UserDashboard = () => {
     "Tirupathur", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur",
     "Vellore", "Viluppuram", "Virudhunagar"
   ];
-
-  const taluksByDistrict = { 
-    "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "Madathukulam", "Palladam", "Udumalaipettai"],
-    "Ariyalur": ["Ariyalur", "Sendurai", "Udayarpalayam"], 
-    "Chengalpattu": ["Chengalpattu", "Chithamur", "Madurantakam", "Pallavaram", "Tambaram", "Tirukalukundram", "Vandalur"],
+const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "Madathukulam", "Palladam", "Udumalaipettai"],
+   "Ariyalur": ["Ariyalur", "Sendurai", "Udayarpalayam"], "Chengalpattu": ["Chengalpattu", "Chithamur", "Madurantakam", "Pallavaram", "Tambaram", "Tirukalukundram", "Vandalur"],
     "Chennai": ["Ambattur", "Alandur", "Egmore", "Guindy", "Mambalam", "Perambur", "Purasawalkam", "Tondiarpet"], 
     "Coimbatore": ["Coimbatore North", "Coimbatore South", "Madukkarai", "Perur", "Sulur", "Pollachi", "Valparai"],
-    "Cuddalore": ["Cuddalore", "Chidambaram", "Kattumannarkoil", "Panruti", "Tittakudi", "Vriddhachalam"],
-    "Dharmapuri": ["Dharmapuri", "Harur", "Karimangalam", "Nallampalli", "Palacode", "Pappireddipatti"], 
-    "Dindigul": ["Dindigul", "Athoor", "Gujiliamparai", "Kodaikanal", "Natham", "Nilakkottai", "Palani", "Vedasandur"], 
-    "Erode": ["Erode", "Bhavani", "Gobichettipalayam", "Kodumudi", "Perundurai", "Sathyamangalam"], 
-    "Kallakurichi": ["Kallakurichi", "Chinnasalem", "Kalvarayan Hills", "Sankarapuram", "Tirukoyilur", "Ulundurpettai"], 
-    "Kanchipuram": ["Kanchipuram", "Cheyyur", "Kundrathur", "Maduranthakam", "Sriperumbudur", "Uthiramerur", "Walajabad"], 
-    "Kanyakumari": ["Agastheeswaram", "Kalkulam", "Thovalai", "Vilavancode"],
-    "Karur": ["Karur", "Aravakurichi", "Kadavur", "Kulithalai", "Krishnarayapuram", "Pugalur"],
-    "Krishnagiri": ["Krishnagiri", "Bargur", "Hosur", "Pochampalli", "Uthangarai"],
-    "Madurai": ["Madurai North", "Madurai South", "Melur", "Peraiyur", "Thirumangalam", "Usilampatti", "Vadipatti"],
-    "Mayiladuthurai": ["Mayiladuthurai", "Kuthalam", "Sirkazhi", "Tharangambadi"],
-    "Nagapattinam": ["Nagapattinam", "Kilvelur", "Thirukkuvalai", "Vedaranyam"],
-    "Namakkal": ["Namakkal", "Kolli Hills", "Paramathi Velur", "Rasipuram", "Tiruchengode"],
-    "Nilgiris": ["Udhagamandalam", "Coonoor", "Gudalur", "Kotagiri", "Kundah"],
-    "Perambalur": ["Perambalur", "Alathur", "Kunnam", "Veppanthattai"],
-    "Pudukkottai": ["Pudukkottai", "Alangudi", "Aranthangi", "Avudaiyarkoil", "Gandarvakottai", "Illuppur", "Karambakudi"], 
-    "Ramanathapuram": ["Ramanathapuram", "Kadaladi", "Kamuthi", "Mudukulathur", "Paramakudi", "Rameswaram", "Tiruvadanai"], 
-    "Ranipet": ["Ranipet", "Arakkonam", "Arcot", "Nemili", "Sholinghur", "Walajah"],
-    "Salem": ["Salem", "Attur", "Gangavalli", "Mettur", "Omalur", "Sankagiri", "Yercaud"], 
-    "Sivaganga": ["Sivaganga", "Devakottai", "Ilayangudi", "Kalaiyarkoil", "Karaikudi", "Manamadurai", "Singampunari"],
-    "Tenkasi": ["Tenkasi", "Kadayanallur", "Sankarankovil", "Shenkottai", "Veerakeralamputhur"],
-    "Thanjavur": ["Thanjavur", "Budalur", "Orathanadu", "Pattukkottai", "Peravurani", "Thiruvaiyaru", "Thiruvidaimarudur"], 
-    "Theni": ["Theni", "Aandipatti", "Bodinayakanur", "Periyakulam", "Uthamapalayam"],
-    "Thoothukudi": ["Thoothukudi", "Ettayapuram", "Kovilpatti", "Ottapidaram", "Sathankulam", "Srivaikuntam", "Tiruchendur", "Vilathikulam"], 
-    "Tiruchirappalli": ["Tiruchirappalli", "Lalgudi", "Manachanallur", "Manapparai", "Srirangam", "Thottiyam", "Thuraiyur"], 
-    "Tirunelveli": ["Tirunelveli", "Ambasamudram", "Cheranmahadevi", "Nanguneri", "Palayamkottai", "Radhapuram", "Sankarankovil"],
-    "Tirupathur": ["Tirupathur", "Ambur", "Natrampalli", "Vaniyambadi"],
-    "Tiruvallur": ["Tiruvallur", "Ambattur", "Gummidipoondi", "Ponneri", "Poonamallee", "R.K.Pet", "Tiruttani"], 
-    "Tiruvannamalai": ["Tiruvannamalai", "Chengam", "Cheyyar", "Jamunamarathur", "Kilpennathur", "Polur", "Thandarampattu", "Vandavasi"], 
-    "Tiruvarur": ["Tiruvarur", "Kodavasal", "Koothanallur", "Mannargudi", "Nannilam", "Needamangalam", "Thiruthuraipoondi", "Valangaiman"],
-    "Vellore": ["Vellore", "Anaicut", "Gudiyatham", "K.V.Kuppam", "Katpadi", "Wallajah"],
-    "Viluppuram": ["Viluppuram", "Gingee", "Kandachipupram", "Marakkanam", "Sankarapuram", "Tindivanam", "Tirukkoyilur", "Vanur"],
-    "Virudhunagar": ["Virudhunagar", "Aruppukkottai", "Kariapatti", "Rajapalayam", "Sattur", "Sivakasi", "Srivilliputhur", "Tiruchuli"] 
-  };
+     "Cuddalore": ["Cuddalore", "Chidambaram", "Kattumannarkoil", "Panruti", "Tittakudi", "Vriddhachalam"],
+      "Dharmapuri": ["Dharmapuri", "Harur", "Karimangalam", "Nallampalli", "Palacode", "Pappireddipatti"], 
+      "Dindigul": ["Dindigul", "Athoor", "Gujiliamparai", "Kodaikanal", "Natham", "Nilakkottai", "Palani", "Vedasandur"], 
+      "Erode": ["Erode", "Bhavani", "Gobichettipalayam", "Kodumudi", "Perundurai", "Sathyamangalam"], "Kallakurichi":
+       ["Kallakurichi", "Chinnasalem", "Kalvarayan Hills", "Sankarapuram", "Tirukoyilur", "Ulundurpettai"], 
+       "Kanchipuram": ["Kanchipuram", "Cheyyur", "Kundrathur", "Maduranthakam", "Sriperumbudur", "Uthiramerur", "Walajabad"], 
+       "Kanyakumari": ["Agastheeswaram", "Kalkulam", "Thovalai", "Vilavancode"],
+        "Karur": ["Karur", "Aravakurichi", "Kadavur", "Kulithalai", "Krishnarayapuram", "Pugalur"],
+         "Krishnagiri": ["Krishnagiri", "Bargur", "Hosur", "Pochampalli", "Uthangarai"],
+         "Madurai": ["Madurai North", "Madurai South", "Melur", "Peraiyur", "Thirumangalam", "Usilampatti", "Vadipatti"],
+          "Mayiladuthurai": ["Mayiladuthurai", "Kuthalam", "Sirkazhi", "Tharangambadi"],
+           "Nagapattinam": ["Nagapattinam", "Kilvelur", "Thirukkuvalai", "Vedaranyam"],
+            "Namakkal": ["Namakkal", "Kolli Hills", "Paramathi Velur", "Rasipuram", "Tiruchengode"],
+             "Nilgiris": ["Udhagamandalam", "Coonoor", "Gudalur", "Kotagiri", "Kundah"],
+              "Perambalur": ["Perambalur", "Alathur", "Kunnam", "Veppanthattai"],
+               "Pudukkottai": ["Pudukkottai", "Alangudi", "Aranthangi", "Avudaiyarkoil", "Gandarvakottai", "Illuppur", "Karambakudi"], 
+               "Ramanathapuram": ["Ramanathapuram", "Kadaladi", "Kamuthi", "Mudukulathur", "Paramakudi", "Rameswaram", "Tiruvadanai"], 
+               "Ranipet": ["Ranipet", "Arakkonam", "Arcot", "Nemili", "Sholinghur", "Walajah"],
+                "Salem": ["Salem", "Attur", "Gangavalli", "Mettur", "Omalur", "Sankagiri", "Yercaud"], 
+               "Sivaganga": ["Sivaganga", "Devakottai", "Ilayangudi", "Kalaiyarkoil", "Karaikudi", "Manamadurai", "Singampunari"],
+                "Tenkasi": ["Tenkasi", "Kadayanallur", "Sankarankovil", "Shenkottai", "Veerakeralamputhur"],
+                 "Thanjavur": ["Thanjavur", "Budalur", "Orathanadu", "Pattukkottai", "Peravurani", "Thiruvaiyaru", "Thiruvidaimarudur"], 
+                 "Theni": ["Theni", "Aandipatti", "Bodinayakanur", "Periyakulam", "Uthamapalayam"],
+                  "Thoothukudi": ["Thoothukudi", "Ettayapuram", "Kovilpatti", "Ottapidaram", "Sathankulam", "Srivaikuntam", "Tiruchendur", "Vilathikulam"], 
+                 "Tiruchirappalli": ["Tiruchirappalli", "Lalgudi", "Manachanallur", "Manapparai", "Srirangam", "Thottiyam", "Thuraiyur"], 
+         "Tirunelveli": ["Tirunelveli", "Ambasamudram", "Cheranmahadevi", "Nanguneri", "Palayamkottai", "Radhapuram", "Sankarankovil"],
+         "Tirupathur": ["Tirupathur", "Ambur", "Natrampalli", "Vaniyambadi"],
+          "Tiruvallur": ["Tiruvallur", "Ambattur", "Gummidipoondi", "Ponneri", "Poonamallee", "R.K.Pet", "Tiruttani"], 
+          "Tiruvannamalai": ["Tiruvannamalai", "Chengam", "Cheyyar", "Jamunamarathur", "Kilpennathur", "Polur", "Thandarampattu", "Vandavasi"], 
+          "Tiruvarur": ["Tiruvarur", "Kodavasal", "Koothanallur", "Mannargudi", "Nannilam", "Needamangalam", "Thiruthuraipoondi", "Valangaiman"],
+           "Vellore": ["Vellore", "Anaicut", "Gudiyatham", "K.V.Kuppam", "Katpadi", "Wallajah"],
+            "Viluppuram": ["Viluppuram", "Gingee", "Kandachipupram", "Marakkanam", "Sankarapuram", "Tindivanam", "Tirukkoyilur", "Vanur"],
+          "Virudhunagar": ["Virudhunagar", "Aruppukkottai", "Kariapatti", "Rajapalayam", "Sattur", "Sivakasi", "Srivilliputhur", "Tiruchuli"] };
 
   const reasonOptions = [
     "Order of Appellate Authorities",
@@ -123,6 +121,7 @@ const UserDashboard = () => {
     setCurrentStep(1);
     setShowSuccess(false);
     setShowPaymentUpload(false);
+    setConnectionError("");
   };
 
   const handleCANSuccess = (hasCANValue) => {
@@ -185,117 +184,96 @@ const UserDashboard = () => {
 
   const handleReviewSubmit = () => setCurrentStep(6);
 
+  // Fixed handleFinalSubmit function
   const handleFinalSubmit = async () => {
-  try {
-    const requiredDocumentIds = [1, 2, 3, 4, 5];
-    const uploadedDocumentIds = uploadedImages.map(img => img.documentType);
-    const allRequiredUploaded = requiredDocumentIds.every(id => uploadedDocumentIds.includes(id));
-    
-    if (!allRequiredUploaded) {
-      alert("Please upload all required documents (Documents 1-5)");
-      return;
-    }
-
-    const submissionData = { 
-      ...formData, 
-      hasCAN, 
-      canNumber 
-    };
-
-    const formDataToSend = new FormData();
-    
-    // Append application data as JSON string
-    formDataToSend.append('applicationData', JSON.stringify(submissionData));
-    
-    // Append document types as a single JSON array
-    const documentTypes = uploadedImages.map(img => img.documentType);
-    formDataToSend.append('documentTypes', JSON.stringify(documentTypes));
-    
-    // Append files
-    uploadedImages.forEach(img => {
-      formDataToSend.append('documents', img.file);
-    });
-
-    // Get token from localStorage
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      alert('Authentication token not found. Please login again.');
-      return;
-    }
-
-    console.log('Submitting application...');
-    console.log('Files count:', uploadedImages.length);
-    console.log('Document types:', documentTypes);
-    console.log('Token exists:', !!token);
-
-    // Log FormData contents for debugging
-    console.log('FormData contents:');
-    for (let [key, value] of formDataToSend.entries()) {
-      if (key === 'documents') {
-        console.log(`${key}:`, value.name, value.type, value.size);
-      } else {
-        console.log(`${key}:`, typeof value, value);
+    try {
+      const requiredDocumentIds = [1, 2, 3, 4, 5];
+      const uploadedDocumentIds = uploadedImages.map(img => img.documentType);
+      const allRequiredUploaded = requiredDocumentIds.every(id => uploadedDocumentIds.includes(id));
+      
+      if (!allRequiredUploaded) {
+        alert("Please upload all required documents (Documents 1-5)");
+        return;
       }
-    }
 
-    const response = await fetch('http://localhost:5000/api/applications/submit', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formDataToSend
-    });
+      const submissionData = { 
+        ...formData, 
+        hasCAN, 
+        canNumber 
+      };
 
-    console.log('Response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Server error response:', errorText);
-      throw new Error(`Server error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('Response result:', result);
-
-    if (result.success) {
-      alert("Patta application submitted successfully!");
-      setShowSuccess(true);
-      setSelectedService("");
-      setHasCAN(null);
-      setCanNumber("");
-      setCurrentStep(1);
-      setUploadedImages([]);
-      setFormData({
-        name: "",
-        aadharName: "",
-        aadharNumber: "",
-        fatherName: "",
-        motherName: "",
-        dob: "",
-        address: "",
-        mobileNumber: "",
-        pattaOption: "",
-        district: "",
-        taluk: "",
-        village: "",
-        areaType: "",
-        reason: "",
-        surveyNo: "",
-        subDivisionNo: "",
-        sroName: "",
-        regDocNo: "",
-        registeredDate: "",
-        landCategory: "",
+      const formDataToSend = new FormData();
+      
+      // Append application data as JSON string
+      formDataToSend.append('applicationData', JSON.stringify(submissionData));
+      
+      // Append document types as a single JSON array
+      const documentTypes = uploadedImages.map(img => img.documentType);
+      formDataToSend.append('documentTypes', JSON.stringify(documentTypes));
+      
+      // Append files
+      uploadedImages.forEach(img => {
+        formDataToSend.append('documents', img.file);
       });
-    } else {
-      alert("Failed to submit application: " + (result.message || 'Unknown error'));
+
+      console.log('Submitting application to:', `${BASE_URL}/api/applications/submit`);
+      console.log('Files count:', uploadedImages.length);
+      console.log('Document types:', documentTypes);
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/applications/submit`, {
+          method: "POST",
+          body: formDataToSend,
+        });
+
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          alert("Application submitted successfully!");
+          console.log("Response:", data);
+          
+          // Reset form after successful submission
+          setShowSuccess(true);
+          setSelectedService("");
+          setHasCAN(null);
+          setCanNumber("");
+          setCurrentStep(1);
+          setUploadedImages([]);
+          setFormData({
+            name: "",
+            aadharName: "",
+            aadharNumber: "",
+            fatherName: "",
+            motherName: "",
+            dob: "",
+            address: "",
+            mobileNumber: "",
+            pattaOption: "",
+            district: "",
+            taluk: "",
+            village: "",
+            areaType: "",
+            reason: "",
+            surveyNo: "",
+            subDivisionNo: "",
+            sroName: "",
+            regDocNo: "",
+            registeredDate: "",
+            landCategory: "",
+          });
+        } else {
+          alert(data.message || "Submission failed");
+        }
+      } catch (error) {
+        console.error("Error submitting application:", error);
+        setConnectionError(`Cannot connect to server at ${BASE_URL}. Please check if backend is running.`);
+        alert("Something went wrong, please try again later.");
+      }
+    } catch (error) {
+      console.error('Error in handleFinalSubmit:', error);
+      alert("Error submitting application. Please try again. Error: " + error.message);
     }
-  } catch (error) {
-    console.error('Error submitting application:', error);
-    alert("Error submitting application. Please try again. Error: " + error.message);
-  }
-};
+  };
 
   const handleReasonChange = (reasonValue, isChecked) => {
     setFormData(prev => {
@@ -310,7 +288,7 @@ const UserDashboard = () => {
 
   const goToPreviousStep = () => setCurrentStep(prev => prev - 1);
 
-  // Payment Upload Handlers - Corrected version
+  // Fixed Payment Upload Handler
   const handlePaymentSubmit = async () => {
     if (!paymentName.trim()) {
       alert('Please enter your name');
@@ -333,7 +311,9 @@ const UserDashboard = () => {
       formData.append('mobileNumber', paymentMobile);
       formData.append('paymentFile', paymentFile);
 
-      const response = await fetch('http://localhost:5000/api/payments/submit', {
+      console.log('Submitting payment to:', `${BASE_URL}/api/payments/submit`);
+
+      const response = await fetch(`${BASE_URL}/api/payments/submit`, {
         method: 'POST',
         body: formData
       });
@@ -355,6 +335,7 @@ const UserDashboard = () => {
       }
     } catch (error) {
       console.error('Error submitting payment:', error);
+      setConnectionError(`Cannot connect to server at ${BASE_URL}. Please check if backend is running.`);
       alert('Error submitting payment. Please try again.');
     }
   };
@@ -365,6 +346,7 @@ const UserDashboard = () => {
     setPaymentMobile('');
     setPaymentFile(null);
     setPaymentSuccess(false);
+    setConnectionError("");
   };
 
   // Button click animation handler
@@ -375,6 +357,16 @@ const UserDashboard = () => {
       button.classList.remove('animate-pulse');
       callback();
     }, 300);
+  };
+
+  // Test backend connection
+  const testBackendConnection = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/api/applications/all`);
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
   };
 
   return (
@@ -405,6 +397,45 @@ const UserDashboard = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        {/* Connection Error Alert */}
+        {connectionError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <strong className="font-bold">Connection Error! </strong>
+                <span className="block sm:inline">{connectionError}</span>
+              </div>
+              <button 
+                onClick={() => setConnectionError("")}
+                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+              >
+                Dismiss
+              </button>
+            </div>
+            <div className="mt-2 text-sm">
+              <p>To fix this:</p>
+              <ol className="list-decimal list-inside ml-4">
+                <li>Make sure your backend server is running on port 5000</li>
+                <li>Check if the backend URL is correct: {BASE_URL}</li>
+                <li>Verify CORS is configured in the backend</li>
+              </ol>
+            </div>
+          </div>
+        )}
+
+        {/* Debug Information
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-blue-800 mb-2">Connection Information:</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <strong>Backend URL:</strong> {BASE_URL}
+            </div>
+            <div>
+              <strong>Current Service:</strong> {selectedService || "None selected"}
+            </div>
+          </div>
+        </div> */}
+
         {/* Payment Upload Section */}
         {showPaymentUpload && (
           <div className="bg-white p-8 rounded-2xl shadow-2xl mb-8 border border-green-200 transform transition-all duration-300 animate-fade-in">
@@ -640,9 +671,6 @@ const UserDashboard = () => {
           </div>
         </div>
       </footer>
-
-      {/* Custom CSS for animations */}
-     
     </div>
   );
 };

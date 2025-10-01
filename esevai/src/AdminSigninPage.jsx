@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const AdminSigninPage = () => {
   const [formData, setFormData] = useState({
     login: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -14,9 +17,10 @@ const AdminSigninPage = () => {
 
   const handleSignin = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/admin/signin", {
+      const res = await fetch(`${BASE_URL}/api/admin/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -24,7 +28,7 @@ const AdminSigninPage = () => {
 
       const data = await res.json();
 
-      if (res.ok) {
+      if (data.success) {
         alert("Signin successful!");
         localStorage.setItem("token", data.token);
         localStorage.setItem("admin", JSON.stringify(data.admin));
@@ -36,6 +40,8 @@ const AdminSigninPage = () => {
       }
     } catch (err) {
       alert("Network error: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -45,13 +51,13 @@ const AdminSigninPage = () => {
         <h2 className="text-2xl font-bold mb-6 text-center">Admin Signin</h2>
         <form onSubmit={handleSignin} className="space-y-4">
           <div>
-            <label className="block mb-1 font-medium">Email or ID</label>
+            <label className="block mb-1 font-medium">Email or Admin ID</label>
             <input
               type="text"
               name="login"
               value={formData.login}
               onChange={handleChange}
-              placeholder="Enter your email or ID"
+              placeholder="Enter your email or admin ID"
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               required
             />
@@ -72,17 +78,19 @@ const AdminSigninPage = () => {
 
           <button
             type="submit"
-            className="w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+            disabled={loading}
+            className={`w-full py-2 text-white rounded-lg transition ${
+              loading ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700'
+            }`}
           >
-            Sign In
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
-        {/* 👇 Link to signup */}
         <p className="mt-4 text-center text-gray-600">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <button
-            onClick={() => navigate("/admin-signup")}
+            onClick={() => navigate("/admin/signup")}
             className="text-purple-600 font-semibold hover:underline"
           >
             Sign Up

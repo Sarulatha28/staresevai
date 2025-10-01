@@ -4,13 +4,18 @@ const jwt = require("jsonwebtoken");
 
 // Admin Signup
 exports.signupAdmin = async (req, res) => {
-  console.log("Request body:", req.body);
+  console.log("Signup Request body:", req.body);
 
   if (!req.body) {
-    return res.status(400).json({ message: "No data provided" });
+    return res.status(400).json({ success: false, message: "No data provided" });
   }
 
   const { companyName, adminId, name, email, phone, password } = req.body;
+
+  // Validation
+  if (!companyName || !adminId || !name || !email || !phone || !password) {
+    return res.status(400).json({ success: false, message: "All fields are required" });
+  }
 
   try {
     // Check if admin exists by email or adminId
@@ -19,7 +24,7 @@ exports.signupAdmin = async (req, res) => {
     });
     
     if (existingAdmin) {
-      return res.status(400).json({ message: "Admin already exists" });
+      return res.status(400).json({ success: false, message: "Admin already exists with this email or ID" });
     }
 
     // Hash the password
@@ -36,18 +41,26 @@ exports.signupAdmin = async (req, res) => {
     });
 
     await newAdmin.save();
-    res.status(201).json({ message: "Admin registered successfully" });
+    res.status(201).json({ 
+      success: true, 
+      message: "Admin registered successfully" 
+    });
   } catch (err) {
     console.error("Signup error:", err);
-    res.status(500).json({ message: "Server error: " + err.message });
+    res.status(500).json({ success: false, message: "Server error: " + err.message });
   }
 };
 
-// Admin Signin (FIXED)
+// Admin Signin
 exports.signinAdmin = async (req, res) => {
   console.log("Signin request body:", req.body);
 
   const { login, password } = req.body;
+
+  // Validation
+  if (!login || !password) {
+    return res.status(400).json({ success: false, message: "Login and password are required" });
+  }
 
   try {
     // Find admin by email or adminId
@@ -56,34 +69,40 @@ exports.signinAdmin = async (req, res) => {
     });
     
     if (!admin) {
-      return res.status(404).json({ message: "Admin not found" });
+      return res.status(404).json({ success: false, message: "Admin not found" });
     }
 
     // Check password
     const isPasswordCorrect = await bcrypt.compare(password, admin.password);
     if (!isPasswordCorrect) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: admin._id, email: admin.email }, 
-      process.env.JWT_SECRET, 
-      { expiresIn: "1h" }
+      { 
+        id: admin._id, 
+        email: admin.email,
+        adminId: admin.adminId 
+      }, 
+      process.env.JWT_SECRET || 'fallback_secret', 
+      { expiresIn: "24h" }
     );
 
     res.status(200).json({ 
+      success: true,
       message: "Signin successful", 
       token,
       admin: {
         id: admin._id,
         name: admin.name,
         email: admin.email,
-        companyName: admin.companyName
+        companyName: admin.companyName,
+        adminId: admin.adminId
       }
     });
   } catch (err) {
     console.error("Signin error:", err);
-    res.status(500).json({ message: "Server error: " + err.message });
+    res.status(500).json({ success: false, message: "Server error: " + err.message });
   }
 };

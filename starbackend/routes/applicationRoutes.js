@@ -1,6 +1,8 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const authMiddleware = require("../middlewares/authMiddleware");
+
 const {
   submitApplication,
   getAllApplications,
@@ -11,7 +13,7 @@ const {
 
 const router = express.Router();
 
-// Configure multer for file uploads
+// Configure multer for file uploads - MOVE THIS BEFORE USING upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -23,19 +25,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 400 * 1024 },
+  limits: { fileSize: 400 * 1024 }, // 400KB limit
   fileFilter: (req, file, cb) => {
-    // Check if file is PDF
-    if (file.mimetype === 'application/pdf') {
+    // Allow both PDF and image files
+    if (file.mimetype === 'application/pdf' || file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only PDF files are allowed'), false);
+      cb(new Error('Only PDF and image files are allowed'), false);
     }
   }
 });
 
-// Routes
-router.post('/submit', upload.array('documents'), submitApplication);
+// Routes - NOW upload is defined
+router.post('/submit',  upload.array('documents'), submitApplication);
 router.get('/all', getAllApplications);
 router.get('/:id', getApplicationById);
 router.put('/:id/status', updateApplicationStatus);

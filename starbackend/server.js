@@ -13,7 +13,15 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
+app.options('*', cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -97,6 +105,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.get('/api/test-cors', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'CORS is working!',
+    origin: req.headers.origin 
+  });
+});
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

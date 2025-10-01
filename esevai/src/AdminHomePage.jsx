@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 // Navbar Component
 const Navbar = ({ activeTab, setActiveTab }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +16,7 @@ const Navbar = ({ activeTab, setActiveTab }) => {
     <nav className="bg-gray-800 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <div className="flex-shrink-0 text-2xl font-bold">StarMobiles</div>
+          <div className="flex-shrink-0 text-2xl font-bold">StarMobiles </div>
           <div className="hidden md:flex space-x-4">
             <a href="/" className="hover:bg-gray-700 px-3 py-2 rounded">
               Home
@@ -31,16 +33,9 @@ const Navbar = ({ activeTab, setActiveTab }) => {
               </button>
             ))}
           </div>
-          {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <button onClick={() => setIsOpen(!isOpen)}>
-              <svg
-                className="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
+              <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -52,12 +47,9 @@ const Navbar = ({ activeTab, setActiveTab }) => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden px-2 pt-2 pb-3 space-y-1 bg-gray-700">
-          <a href="/" className="block px-3 py-2 rounded hover:bg-gray-600">
-            Home
-          </a>
+          <a href="/" className="block px-3 py-2 rounded hover:bg-gray-600">Home</a>
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -86,12 +78,10 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
 
   const updateStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/applications/${application._id}/status`, {
+      const response = await fetch(`${BASE_URL}/api/applications/${application._id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ status })
       });
@@ -110,7 +100,7 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
   const downloadDocument = async (doc, index) => {
     setDownloading(index);
     try {
-      const response = await fetch(`http://localhost:5000/api/documents/download/${doc.fileName}`);
+      const response = await fetch(`${BASE_URL}/api/documents/download/${doc.fileName}`);
       
       if (!response.ok) {
         throw new Error('Download failed');
@@ -134,7 +124,7 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
     } catch (error) {
       console.error('Download error:', error);
       try {
-        const downloadUrl = `http://localhost:5000/uploads/${doc.fileName}`;
+        const downloadUrl = `${BASE_URL}/uploads/${doc.fileName}`;
         const link = document.createElement('a');
         link.href = downloadUrl;
         const fileName = doc.originalName?.endsWith('.pdf') 
@@ -156,7 +146,7 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
 
   // View document in new tab
   const viewDocument = (document) => {
-    const viewUrl = `http://localhost:5000/api/documents/view/${document.fileName}`;
+    const viewUrl = `${BASE_URL}/api/documents/view/${document.fileName}`;
     window.open(viewUrl, '_blank');
   };
 
@@ -386,7 +376,7 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
                           onClick={() => viewDocument(document)}
                         >
                           <img 
-                            src={`http://localhost:5000/uploads/${document.fileName}`} 
+                            src={`${BASE_URL}/uploads/${document.fileName}`} 
                             alt={`Preview ${index + 1}`}
                             className="max-h-full max-w-full object-contain"
                             onError={(e) => {
@@ -627,10 +617,10 @@ const PaymentDetails = ({ payment, onClose, onDelete }) => {
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">Payment Screenshot</label>
               <img 
-                src={`http://localhost:5000/uploads/payments/${payment.paymentScreenshot}`} 
+                src={`${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`} 
                 alt={`Payment screenshot for ${payment.name}`}
                 className="rounded-lg shadow-md max-w-full h-64 object-contain cursor-pointer"
-                onClick={() => window.open(`http://localhost:5000/uploads/payments/${payment.paymentScreenshot}`, '_blank')}
+                onClick={() => window.open(`${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`, '_blank')}
               />
               <p className="text-xs text-gray-500 mt-1 text-center">Click image to view full size</p>
             </div>
@@ -668,57 +658,90 @@ const AdminHomepage = () => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('applications');
   const [updatingStatus, setUpdatingStatus] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
+  // Enhanced fetchData function with better error handling
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      setLoading(true);
+      setError('');
+      
+      console.log('Fetching data from:', BASE_URL);
       
       const [appsRes, canRes, paymentsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/applications/all', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch('http://localhost:5000/api/can/all', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch('http://localhost:5000/api/payments/all', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        fetch(`${BASE_URL}/api/applications/all`),
+        fetch(`${BASE_URL}/api/can/all`),
+        fetch(`${BASE_URL}/api/payments/all`)
       ]);
+
+      console.log('API Responses:', {
+        applications: appsRes.status,
+        can: canRes.status,
+        payments: paymentsRes.status
+      });
+
+      // Check if responses are OK
+      if (!appsRes.ok) throw new Error(`Applications API error: ${appsRes.status}`);
+      if (!canRes.ok) throw new Error(`CAN API error: ${canRes.status}`);
+      if (!paymentsRes.ok) throw new Error(`Payments API error: ${paymentsRes.status}`);
 
       const appsResult = await appsRes.json();
       const canResult = await canRes.json();
       const paymentsResult = await paymentsRes.json();
 
+      console.log('API Results:', {
+        apps: appsResult,
+        can: canResult,
+        payments: paymentsResult
+      });
+
       if (appsResult.success) {
-        const sortedApps = appsResult.applications.sort(
+        const sortedApps = appsResult.applications?.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
+        ) || [];
         setApplications(sortedApps);
+      } else {
+        throw new Error(appsResult.message || 'Failed to fetch applications');
       }
-      if (canResult.success) setCanRecords(canResult.canRecords);
-      if (paymentsResult.success) setPayments(paymentsResult.payments);
+
+      if (canResult.success) {
+        setCanRecords(canResult.canRecords || []);
+      } else {
+        throw new Error(canResult.message || 'Failed to fetch CAN records');
+      }
+
+      if (paymentsResult.success) {
+        setPayments(paymentsResult.payments || []);
+      } else {
+        throw new Error(paymentsResult.message || 'Failed to fetch payments');
+      }
 
     } catch (error) {
-      setError('Error fetching data');
+      console.error('Error fetching data:', error);
+      setError(`Failed to fetch data: ${error.message}. Check console for details.`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Update application status
+  // Enhanced useEffect to watch for refresh triggers
+  useEffect(() => {
+    fetchData();
+  }, [refreshTrigger]);
+
+  // Function to manually refresh data
+  const refreshData = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Update application status - enhanced to refresh data after update
   const updateApplicationStatus = async (applicationId, newStatus) => {
     setUpdatingStatus(applicationId);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/applications/${applicationId}/status`, {
+      const response = await fetch(`${BASE_URL}/api/applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ status: newStatus })
       });
@@ -729,23 +752,24 @@ const AdminHomepage = () => {
         setApplications(prev => prev.map(app => 
           app._id === applicationId ? { ...app, status: newStatus } : app
         ));
+        // Refresh data to ensure consistency
+        setTimeout(() => refreshData(), 500);
       } else {
-        alert('Failed to update status');
+        alert('Failed to update status: ' + result.message);
       }
     } catch (error) {
-      alert('Error updating status');
+      alert('Error updating status: ' + error.message);
     } finally {
       setUpdatingStatus(null);
     }
   };
 
+  // Enhanced delete functions to refresh data after deletion
   const deleteApplication = async (id) => {
     if (!window.confirm("Are you sure you want to delete this application?")) return;
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/applications/${id}`, {
+      const response = await fetch(`${BASE_URL}/api/applications/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
       });
       
       const result = await response.json();
@@ -754,18 +778,20 @@ const AdminHomepage = () => {
         if (selectedApplication && selectedApplication._id === id) {
           setSelectedApplication(null);
         }
+        // Refresh data to ensure all related data is updated
+        setTimeout(() => refreshData(), 500);
+      } else {
+        alert('Failed to delete application: ' + result.message);
       }
     } catch (error) {
-      alert('Failed to delete application');
+      alert('Failed to delete application: ' + error.message);
     }
   };
 
   const deleteCAN = async (id) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/can/${id}`, {
+      const response = await fetch(`${BASE_URL}/api/can/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
       });
       
       const result = await response.json();
@@ -774,11 +800,13 @@ const AdminHomepage = () => {
         if (selectedCAN && selectedCAN._id === id) {
           setSelectedCAN(null);
         }
+        // Refresh data
+        setTimeout(() => refreshData(), 500);
       } else {
-        alert('Failed to delete CAN record');
+        alert('Failed to delete CAN record: ' + result.message);
       }
     } catch (error) {
-      alert('Failed to delete CAN record');
+      alert('Failed to delete CAN record: ' + error.message);
     }
   };
 
@@ -786,10 +814,8 @@ const AdminHomepage = () => {
     if (!window.confirm("Are you sure you want to delete this payment record?")) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/payments/${id}`, {
+      const response = await fetch(`${BASE_URL}/api/payments/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
       });
       
       const result = await response.json();
@@ -798,12 +824,31 @@ const AdminHomepage = () => {
         if (selectedPayment && selectedPayment._id === id) {
           setSelectedPayment(null);
         }
+        // Refresh data
+        setTimeout(() => refreshData(), 500);
       } else {
-        alert('Failed to delete payment record');
+        alert('Failed to delete payment record: ' + result.message);
       }
     } catch (error) {
-      alert('Failed to delete payment record');
+      alert('Failed to delete payment record: ' + error.message);
     }
+  };
+
+  // Enhanced modal close handlers to refresh data when modals close
+  const handleApplicationModalClose = () => {
+    setSelectedApplication(null);
+    // Refresh data when modal closes to get any updates
+    setTimeout(() => refreshData(), 300);
+  };
+
+  const handleCANModalClose = () => {
+    setSelectedCAN(null);
+    setTimeout(() => refreshData(), 300);
+  };
+
+  const handlePaymentModalClose = () => {
+    setSelectedPayment(null);
+    setTimeout(() => refreshData(), 300);
   };
 
   // Get status badge color
@@ -819,19 +864,42 @@ const AdminHomepage = () => {
     return statusColors[status] || 'bg-gray-100 text-gray-800';
   };
 
+  // Add refresh button to the UI
+  const RefreshButton = () => (
+    <button
+      onClick={refreshData}
+      disabled={loading}
+      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-all duration-300 flex items-center space-x-2"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <span>{loading ? 'Refreshing...' : 'Refresh Data'}</span>
+    </button>
+  );
+
   // Render Applications with Cards and Status Dropdown
   const renderApplications = () => (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Patta Applications</h1>
-        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-          Total: {applications.length}
-        </span>
+        <div className="flex items-center space-x-4">
+          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            Total: {applications.length}
+          </span>
+          <RefreshButton />
+        </div>
       </div>
       
       {applications.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <p className="text-gray-500 text-lg">No applications found</p>
+          <button 
+            onClick={refreshData}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Refresh
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -928,13 +996,22 @@ const AdminHomepage = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">CAN Records</h1>
-        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-          Total: {canRecords.length}
-        </span>
+        <div className="flex items-center space-x-4">
+          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+            Total: {canRecords.length}
+          </span>
+          <RefreshButton />
+        </div>
       </div>
       {canRecords.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <p className="text-gray-500 text-lg">No CAN records found</p>
+          <button 
+            onClick={refreshData}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Refresh
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -984,13 +1061,22 @@ const AdminHomepage = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Payment Records</h1>
-        <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
-          Total: {payments.length}
-        </span>
+        <div className="flex items-center space-x-4">
+          <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+            Total: {payments.length}
+          </span>
+          <RefreshButton />
+        </div>
       </div>
       {payments.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <p className="text-gray-500 text-lg">No payment records found</p>
+          <button 
+            onClick={refreshData}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Refresh
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1019,10 +1105,10 @@ const AdminHomepage = () => {
                 <div className="mb-4">
                   <p className="text-sm font-medium text-gray-700 mb-2">Payment Screenshot:</p>
                   <img 
-                    src={`http://localhost:5000/uploads/payments/${payment.paymentScreenshot}`} 
+                    src={`${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`} 
                     alt={`Payment screenshot for ${payment.name}`}
                     className="rounded-lg shadow-md max-w-full h-48 object-cover cursor-pointer"
-                    onClick={() => window.open(`http://localhost:5000/uploads/payments/${payment.paymentScreenshot}`, '_blank')}
+                    onClick={() => window.open(`${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`, '_blank')}
                   />
                   <p className="text-xs text-gray-500 mt-1">Click image to view full size</p>
                 </div>
@@ -1053,8 +1139,13 @@ const AdminHomepage = () => {
     return (
       <div className="min-h-screen bg-gray-100">
         <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-xl">Loading data...</div>
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="flex items-center justify-center min-h-96">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading admin dashboard...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1065,9 +1156,22 @@ const AdminHomepage = () => {
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <div className="max-w-7xl mx-auto p-6">
+        {/* Connection status removed - only show errors */}
+        
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <strong className="font-bold">Error! </strong>
+                <span className="block sm:inline">{error}</span>
+              </div>
+              <button 
+                onClick={refreshData}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Retry
+              </button>
+            </div>
           </div>
         )}
 
@@ -1079,7 +1183,7 @@ const AdminHomepage = () => {
       {selectedApplication && (
         <ApplicationDetails
           application={selectedApplication}
-          onClose={() => setSelectedApplication(null)}
+          onClose={handleApplicationModalClose}
           onStatusUpdate={updateApplicationStatus}
         />
       )}
@@ -1087,7 +1191,7 @@ const AdminHomepage = () => {
       {selectedCAN && (
         <CANDetails
           canRecord={selectedCAN}
-          onClose={() => setSelectedCAN(null)}
+          onClose={handleCANModalClose}
           onDelete={deleteCAN}
         />
       )}
@@ -1095,7 +1199,7 @@ const AdminHomepage = () => {
       {selectedPayment && (
         <PaymentDetails
           payment={selectedPayment}
-          onClose={() => setSelectedPayment(null)}
+          onClose={handlePaymentModalClose}
           onDelete={deletePayment}
         />
       )}

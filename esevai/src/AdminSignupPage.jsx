@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const AdminSignupPage = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     companyName: "",
@@ -19,9 +22,10 @@ const AdminSignupPage = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/admin/signup", {
+      const res = await fetch(`${BASE_URL}/api/admin/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -29,14 +33,16 @@ const AdminSignupPage = () => {
 
       const data = await res.json();
 
-      if (res.ok) {
+      if (data.success) {
         alert("Signup successful! Please sign in.");
-        navigate("/admin/signin"); // redirect to signin after signup
+        navigate("/admin/signin");
       } else {
         alert("Error: " + data.message);
       }
     } catch (err) {
       alert("Network error: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -125,17 +131,19 @@ const AdminSignupPage = () => {
 
           <button
             type="submit"
-            className="w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+            disabled={loading}
+            className={`w-full py-2 text-white rounded-lg transition ${
+              loading ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700'
+            }`}
           >
-            Sign Up
+            {loading ? 'Signing Up...' : 'Sign Up'}
           </button>
         </form>
 
-        {/* 👇 Already signup redirect link */}
         <p className="mt-4 text-center text-gray-600">
           Already have an account?{" "}
           <button
-            onClick={() => navigate("/admin-signin")}
+            onClick={() => navigate("/admin/signin")}
             className="text-purple-600 font-semibold hover:underline"
           >
             Sign In

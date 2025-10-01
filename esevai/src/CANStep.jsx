@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+// Add BASE_URL definition at the top
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const CANStep = ({ hasCAN, setHasCAN, canNumber, setCanNumber, onSuccess }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [userName, setUserName] = useState("");
@@ -26,7 +29,7 @@ const CANStep = ({ hasCAN, setHasCAN, canNumber, setCanNumber, onSuccess }) => {
 
     try {
       // Save CAN record to database
-      const response = await fetch('http://localhost:5000/api/can/create', {
+      const response = await fetch(`${BASE_URL}/api/can/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,7 +48,8 @@ const CANStep = ({ hasCAN, setHasCAN, canNumber, setCanNumber, onSuccess }) => {
         alert('Failed to save CAN record: ' + result.message);
       }
     } catch (error) {
-      alert('Error submitting CAN details. Please try again.');
+      console.error('Network error:', error);
+      alert('Error submitting CAN details. Please ensure backend server is running.');
     }
   };
 
