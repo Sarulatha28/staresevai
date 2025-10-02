@@ -37,6 +37,7 @@ const createCAN = async (req, res) => {
     });
 
   } catch (error) {
+    
     console.error('Error creating CAN record:', error);
     res.status(500).json({
       success: false,

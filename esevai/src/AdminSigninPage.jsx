@@ -90,7 +90,7 @@ const AdminSigninPage = () => {
         <p className="mt-4 text-center text-gray-600">
           Don't have an account?{" "}
           <button
-            onClick={() => navigate("/admin/signup")}
+            onClick={() => navigate("/admin-signup")}
             className="text-purple-600 font-semibold hover:underline"
           >
             Sign Up

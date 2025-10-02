@@ -8,7 +8,7 @@ import LandDetailsStep from "./LandDetailsStep";
 import DocumentUploadStep from "./DocumentUploadStep";
 import ReviewSubmitStep from "./ReviewSubmitStep";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const BASE_URL = import.meta.env.VITE_API_URL || "https://staresevaimaiyam.onrender.com";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -423,18 +423,7 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
           </div>
         )}
 
-        {/* Debug Information
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-blue-800 mb-2">Connection Information:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <strong>Backend URL:</strong> {BASE_URL}
-            </div>
-            <div>
-              <strong>Current Service:</strong> {selectedService || "None selected"}
-            </div>
-          </div>
-        </div> */}
+        
 
         {/* Payment Upload Section */}
         {showPaymentUpload && (
