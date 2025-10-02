@@ -25,7 +25,7 @@ const AdminSignupPage = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${BASE_URL}/api/admin/signup`, {
+      const res = await fetch(`${BASE_URL}/api/admin-signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -35,7 +35,7 @@ const AdminSignupPage = () => {
 
       if (data.success) {
         alert("Signup successful! Please sign in.");
-        navigate("/admin/signin");
+        navigate("");
       } else {
         alert("Error: " + data.message);
       }
