@@ -9,8 +9,9 @@ const documentSchema = new mongoose.Schema({
 
 const applicationSchema = new mongoose.Schema({
   // CAN Information
-  hasCAN: Boolean,
+  hasCAN: { type: Boolean, default: false },
   canNumber: String,
+  userName: String, // For CAN users
   
   // Personal Details
   name: String,
@@ -35,16 +36,15 @@ const applicationSchema = new mongoose.Schema({
   subDivisionNo: String,
   sroName: String,
   regDocNo: String,
-  docYear: String,  // Correct field name
+  docYear: String,
   registeredDate: Date,
   landCategory: String,
-  
   
   // Documents
   documents: [documentSchema],
   
   // Status
- status: { 
+  status: { 
     type: String, 
     default: 'pending',
     enum: ['pending', 'completed', 'in review', 'approved', 'rejected']

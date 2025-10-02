@@ -83,17 +83,25 @@ exports.submitApplication = async (req, res) => {
       }
     }
 
-    // Handle CAN submission
+    // Handle CAN submission ONLY at final submission
     if (applicationData.hasCAN && applicationData.canNumber) {
       try {
-        const canRecord = new CAN({
-          name: applicationData.name,
-          canNumber: applicationData.canNumber
-        });
-        await canRecord.save();
-        console.log('CAN record saved');
+        // Check if CAN number already exists
+        const existingCAN = await CAN.findOne({ canNumber: applicationData.canNumber });
+        if (!existingCAN) {
+          // Only create new CAN record if it doesn't exist
+          const canRecord = new CAN({
+            name: applicationData.userName || applicationData.name,
+            canNumber: applicationData.canNumber
+          });
+          await canRecord.save();
+          console.log('New CAN record saved');
+        } else {
+          console.log('CAN record already exists, skipping creation');
+        }
       } catch (canError) {
         console.error('Error saving CAN record:', canError);
+        // Don't fail the application if CAN save fails
       }
     }
 
@@ -165,6 +173,30 @@ exports.getAllApplications = async (req, res) => {
   }
 };
 
+// Get applications by CAN status
+exports.getApplicationsByCANStatus = async (req, res) => {
+  try {
+    const { hasCAN } = req.params;
+    
+    const applications = await Application.find({ hasCAN: hasCAN === 'true' })
+      .sort({ createdAt: -1 });
+    
+    console.log(`Fetched ${applications.length} applications with hasCAN: ${hasCAN}`);
+    
+    res.json({ 
+      success: true, 
+      applications,
+      count: applications.length
+    });
+  } catch (error) {
+    console.error('Error fetching applications by CAN status:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch applications' 
+    });
+  }
+};
+
 // Get single application
 exports.getApplicationById = async (req, res) => {
   try {
@@ -180,7 +212,6 @@ exports.getApplicationById = async (req, res) => {
   }
 };
 
-// Update application status - FIXED VERSION
 // Update application status
 exports.updateApplicationStatus = async (req, res) => {
   try {

@@ -1,19 +1,19 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const authMiddleware = require("../middlewares/authMiddleware");
 
 const {
   submitApplication,
   getAllApplications,
   getApplicationById,
   updateApplicationStatus,
-  deleteApplication
+  deleteApplication,
+  getApplicationsByCANStatus
 } = require('../controllers/applicationController');
 
 const router = express.Router();
 
-// Configure multer for file uploads - MOVE THIS BEFORE USING upload
+// Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -36,9 +36,10 @@ const upload = multer({
   }
 });
 
-// Routes - NOW upload is defined
-router.post('/submit',  upload.array('documents'), submitApplication);
+// Routes
+router.post('/submit', upload.array('documents'), submitApplication);
 router.get('/all', getAllApplications);
+router.get('/can/:hasCAN', getApplicationsByCANStatus);
 router.get('/:id', getApplicationById);
 router.put('/:id/status', updateApplicationStatus);
 router.delete('/:id', deleteApplication);

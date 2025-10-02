@@ -1,7 +1,7 @@
 const CAN = require('../models/CAN');
 
 // Create new CAN record
-const createCAN = async (req, res) => {
+exports.createCAN = async (req, res) => {
   try {
     const { name, canNumber } = req.body;
 
@@ -37,7 +37,6 @@ const createCAN = async (req, res) => {
     });
 
   } catch (error) {
-    
     console.error('Error creating CAN record:', error);
     res.status(500).json({
       success: false,
@@ -47,7 +46,7 @@ const createCAN = async (req, res) => {
 };
 
 // Get all CAN records
-const getAllCAN = async (req, res) => {
+exports.getAllCAN = async (req, res) => {
   try {
     const canRecords = await CAN.find().sort({ createdAt: -1 });
     
@@ -65,7 +64,7 @@ const getAllCAN = async (req, res) => {
 };
 
 // Delete CAN record
-const deleteCAN = async (req, res) => {
+exports.deleteCAN = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -89,10 +88,4 @@ const deleteCAN = async (req, res) => {
       message: 'Server error deleting CAN record'
     });
   }
-};
-
-module.exports = {
-  createCAN,
-  getAllCAN,
-  deleteCAN
 };

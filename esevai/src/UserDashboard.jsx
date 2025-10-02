@@ -15,6 +15,7 @@ const UserDashboard = () => {
   const [selectedService, setSelectedService] = useState("");
   const [hasCAN, setHasCAN] = useState(null);
   const [canNumber, setCanNumber] = useState("");
+  const [userName, setUserName] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImages, setUploadedImages] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -24,6 +25,7 @@ const UserDashboard = () => {
   const [paymentFile, setPaymentFile] = useState(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [connectionError, setConnectionError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add loading state
 
   const [formData, setFormData] = useState({
     name: "",
@@ -48,7 +50,7 @@ const UserDashboard = () => {
     landCategory: "",
   });
 
-  // Existing data arrays
+  // Data arrays
   const districts = [
     "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore",
     "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kanchipuram",
@@ -59,43 +61,47 @@ const UserDashboard = () => {
     "Tirupathur", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur",
     "Vellore", "Viluppuram", "Virudhunagar"
   ];
-const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "Madathukulam", "Palladam", "Udumalaipettai"],
-   "Ariyalur": ["Ariyalur", "Sendurai", "Udayarpalayam"], "Chengalpattu": ["Chengalpattu", "Chithamur", "Madurantakam", "Pallavaram", "Tambaram", "Tirukalukundram", "Vandalur"],
+  
+  const taluksByDistrict = { 
+    "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "Madathukulam", "Palladam", "Udumalaipettai"],
+    "Ariyalur": ["Ariyalur", "Sendurai", "Udayarpalayam"], 
+    "Chengalpattu": ["Chengalpattu", "Chithamur", "Madurantakam", "Pallavaram", "Tambaram", "Tirukalukundram", "Vandalur"],
     "Chennai": ["Ambattur", "Alandur", "Egmore", "Guindy", "Mambalam", "Perambur", "Purasawalkam", "Tondiarpet"], 
     "Coimbatore": ["Coimbatore North", "Coimbatore South", "Madukkarai", "Perur", "Sulur", "Pollachi", "Valparai"],
-     "Cuddalore": ["Cuddalore", "Chidambaram", "Kattumannarkoil", "Panruti", "Tittakudi", "Vriddhachalam"],
-      "Dharmapuri": ["Dharmapuri", "Harur", "Karimangalam", "Nallampalli", "Palacode", "Pappireddipatti"], 
-      "Dindigul": ["Dindigul", "Athoor", "Gujiliamparai", "Kodaikanal", "Natham", "Nilakkottai", "Palani", "Vedasandur"], 
-      "Erode": ["Erode", "Bhavani", "Gobichettipalayam", "Kodumudi", "Perundurai", "Sathyamangalam"], "Kallakurichi":
-       ["Kallakurichi", "Chinnasalem", "Kalvarayan Hills", "Sankarapuram", "Tirukoyilur", "Ulundurpettai"], 
-       "Kanchipuram": ["Kanchipuram", "Cheyyur", "Kundrathur", "Maduranthakam", "Sriperumbudur", "Uthiramerur", "Walajabad"], 
-       "Kanyakumari": ["Agastheeswaram", "Kalkulam", "Thovalai", "Vilavancode"],
-        "Karur": ["Karur", "Aravakurichi", "Kadavur", "Kulithalai", "Krishnarayapuram", "Pugalur"],
-         "Krishnagiri": ["Krishnagiri", "Bargur", "Hosur", "Pochampalli", "Uthangarai"],
-         "Madurai": ["Madurai North", "Madurai South", "Melur", "Peraiyur", "Thirumangalam", "Usilampatti", "Vadipatti"],
-          "Mayiladuthurai": ["Mayiladuthurai", "Kuthalam", "Sirkazhi", "Tharangambadi"],
-           "Nagapattinam": ["Nagapattinam", "Kilvelur", "Thirukkuvalai", "Vedaranyam"],
-            "Namakkal": ["Namakkal", "Kolli Hills", "Paramathi Velur", "Rasipuram", "Tiruchengode"],
-             "Nilgiris": ["Udhagamandalam", "Coonoor", "Gudalur", "Kotagiri", "Kundah"],
-              "Perambalur": ["Perambalur", "Alathur", "Kunnam", "Veppanthattai"],
-               "Pudukkottai": ["Pudukkottai", "Alangudi", "Aranthangi", "Avudaiyarkoil", "Gandarvakottai", "Illuppur", "Karambakudi"], 
-               "Ramanathapuram": ["Ramanathapuram", "Kadaladi", "Kamuthi", "Mudukulathur", "Paramakudi", "Rameswaram", "Tiruvadanai"], 
-               "Ranipet": ["Ranipet", "Arakkonam", "Arcot", "Nemili", "Sholinghur", "Walajah"],
-                "Salem": ["Salem", "Attur", "Gangavalli", "Mettur", "Omalur", "Sankagiri", "Yercaud"], 
-               "Sivaganga": ["Sivaganga", "Devakottai", "Ilayangudi", "Kalaiyarkoil", "Karaikudi", "Manamadurai", "Singampunari"],
-                "Tenkasi": ["Tenkasi", "Kadayanallur", "Sankarankovil", "Shenkottai", "Veerakeralamputhur"],
-                 "Thanjavur": ["Thanjavur", "Budalur", "Orathanadu", "Pattukkottai", "Peravurani", "Thiruvaiyaru", "Thiruvidaimarudur"], 
-                 "Theni": ["Theni", "Aandipatti", "Bodinayakanur", "Periyakulam", "Uthamapalayam"],
-                  "Thoothukudi": ["Thoothukudi", "Ettayapuram", "Kovilpatti", "Ottapidaram", "Sathankulam", "Srivaikuntam", "Tiruchendur", "Vilathikulam"], 
-                 "Tiruchirappalli": ["Tiruchirappalli", "Lalgudi", "Manachanallur", "Manapparai", "Srirangam", "Thottiyam", "Thuraiyur"], 
-         "Tirunelveli": ["Tirunelveli", "Ambasamudram", "Cheranmahadevi", "Nanguneri", "Palayamkottai", "Radhapuram", "Sankarankovil"],
-         "Tirupathur": ["Tirupathur", "Ambur", "Natrampalli", "Vaniyambadi"],
-          "Tiruvallur": ["Tiruvallur", "Ambattur", "Gummidipoondi", "Ponneri", "Poonamallee", "R.K.Pet", "Tiruttani"], 
-          "Tiruvannamalai": ["Tiruvannamalai", "Chengam", "Cheyyar", "Jamunamarathur", "Kilpennathur", "Polur", "Thandarampattu", "Vandavasi"], 
-          "Tiruvarur": ["Tiruvarur", "Kodavasal", "Koothanallur", "Mannargudi", "Nannilam", "Needamangalam", "Thiruthuraipoondi", "Valangaiman"],
-           "Vellore": ["Vellore", "Anaicut", "Gudiyatham", "K.V.Kuppam", "Katpadi", "Wallajah"],
-            "Viluppuram": ["Viluppuram", "Gingee", "Kandachipupram", "Marakkanam", "Sankarapuram", "Tindivanam", "Tirukkoyilur", "Vanur"],
-          "Virudhunagar": ["Virudhunagar", "Aruppukkottai", "Kariapatti", "Rajapalayam", "Sattur", "Sivakasi", "Srivilliputhur", "Tiruchuli"] };
+    "Cuddalore": ["Cuddalore", "Chidambaram", "Kattumannarkoil", "Panruti", "Tittakudi", "Vriddhachalam"],
+    "Dharmapuri": ["Dharmapuri", "Harur", "Karimangalam", "Nallampalli", "Palacode", "Pappireddipatti"], 
+    "Dindigul": ["Dindigul", "Athoor", "Gujiliamparai", "Kodaikanal", "Natham", "Nilakkottai", "Palani", "Vedasandur"], 
+    "Erode": ["Erode", "Bhavani", "Gobichettipalayam", "Kodumudi", "Perundurai", "Sathyamangalam"], 
+    "Kallakurichi": ["Kallakurichi", "Chinnasalem", "Kalvarayan Hills", "Sankarapuram", "Tirukoyilur", "Ulundurpettai"], 
+    "Kanchipuram": ["Kanchipuram", "Cheyyur", "Kundrathur", "Maduranthakam", "Sriperumbudur", "Uthiramerur", "Walajabad"], 
+    "Kanyakumari": ["Agastheeswaram", "Kalkulam", "Thovalai", "Vilavancode"],
+    "Karur": ["Karur", "Aravakurichi", "Kadavur", "Kulithalai", "Krishnarayapuram", "Pugalur"],
+    "Krishnagiri": ["Krishnagiri", "Bargur", "Hosur", "Pochampalli", "Uthangarai"],
+    "Madurai": ["Madurai North", "Madurai South", "Melur", "Peraiyur", "Thirumangalam", "Usilampatti", "Vadipatti"],
+    "Mayiladuthurai": ["Mayiladuthurai", "Kuthalam", "Sirkazhi", "Tharangambadi"],
+    "Nagapattinam": ["Nagapattinam", "Kilvelur", "Thirukkuvalai", "Vedaranyam"],
+    "Namakkal": ["Namakkal", "Kolli Hills", "Paramathi Velur", "Rasipuram", "Tiruchengode"],
+    "Nilgiris": ["Udhagamandalam", "Coonoor", "Gudalur", "Kotagiri", "Kundah"],
+    "Perambalur": ["Perambalur", "Alathur", "Kunnam", "Veppanthattai"],
+    "Pudukkottai": ["Pudukkottai", "Alangudi", "Aranthangi", "Avudaiyarkoil", "Gandarvakottai", "Illuppur", "Karambakudi"], 
+    "Ramanathapuram": ["Ramanathapuram", "Kadaladi", "Kamuthi", "Mudukulathur", "Paramakudi", "Rameswaram", "Tiruvadanai"], 
+    "Ranipet": ["Ranipet", "Arakkonam", "Arcot", "Nemili", "Sholinghur", "Walajah"],
+    "Salem": ["Salem", "Attur", "Gangavalli", "Mettur", "Omalur", "Sankagiri", "Yercaud"], 
+    "Sivaganga": ["Sivaganga", "Devakottai", "Ilayangudi", "Kalaiyarkoil", "Karaikudi", "Manamadurai", "Singampunari"],
+    "Tenkasi": ["Tenkasi", "Kadayanallur", "Sankarankovil", "Shenkottai", "Veerakeralamputhur"],
+    "Thanjavur": ["Thanjavur", "Budalur", "Orathanadu", "Pattukkottai", "Peravurani", "Thiruvaiyaru", "Thiruvidaimarudur"], 
+    "Theni": ["Theni", "Aandipatti", "Bodinayakanur", "Periyakulam", "Uthamapalayam"],
+    "Thoothukudi": ["Thoothukudi", "Ettayapuram", "Kovilpatti", "Ottapidaram", "Sathankulam", "Srivaikuntam", "Tiruchendur", "Vilathikulam"], 
+    "Tiruchirappalli": ["Tiruchirappalli", "Lalgudi", "Manachanallur", "Manapparai", "Srirangam", "Thottiyam", "Thuraiyur"], 
+    "Tirunelveli": ["Tirunelveli", "Ambasamudram", "Cheranmahadevi", "Nanguneri", "Palayamkottai", "Radhapuram", "Sankarankovil"],
+    "Tirupathur": ["Tirupathur", "Ambur", "Natrampalli", "Vaniyambadi"],
+    "Tiruvallur": ["Tiruvallur", "Ambattur", "Gummidipoondi", "Ponneri", "Poonamallee", "R.K.Pet", "Tiruttani"], 
+    "Tiruvannamalai": ["Tiruvannamalai", "Chengam", "Cheyyar", "Jamunamarathur", "Kilpennathur", "Polur", "Thandarampattu", "Vandavasi"], 
+    "Tiruvarur": ["Tiruvarur", "Kodavasal", "Koothanallur", "Mannargudi", "Nannilam", "Needamangalam", "Thiruthuraipoondi", "Valangaiman"],
+    "Vellore": ["Vellore", "Anaicut", "Gudiyatham", "K.V.Kuppam", "Katpadi", "Wallajah"],
+    "Viluppuram": ["Viluppuram", "Gingee", "Kandachipupram", "Marakkanam", "Sankarapuram", "Tindivanam", "Tirukkoyilur", "Vanur"],
+    "Virudhunagar": ["Virudhunagar", "Aruppukkottai", "Kariapatti", "Rajapalayam", "Sattur", "Sivakasi", "Srivilliputhur", "Tiruchuli"]
+  };
 
   const reasonOptions = [
     "Order of Appellate Authorities",
@@ -107,7 +113,7 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
     "Partition Deed"
   ];
 
-  // Handlers for existing forms
+  // Handlers
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -124,15 +130,17 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
     setConnectionError("");
   };
 
-  const handleCANSuccess = (hasCANValue) => {
+  const handleCANSuccess = (hasCANValue, name = "", canNum = "") => {
     if (hasCANValue === true) {
-      setShowSuccess(true);
-      setSelectedService("");
-      setCurrentStep(1);
-      setHasCAN(null);
-      setCanNumber("");
+      setFormData(prev => ({
+        ...prev,
+        name: name
+      }));
+      setUserName(name);
+      setCanNumber(canNum);
+      setCurrentStep(3); // Skip to patta options
     } else if (hasCANValue === false) {
-      setCurrentStep(2);
+      setCurrentStep(2); // Go to personal details
     }
   };
 
@@ -184,7 +192,6 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
 
   const handleReviewSubmit = () => setCurrentStep(6);
 
-  // Fixed handleFinalSubmit function
   const handleFinalSubmit = async () => {
     try {
       const requiredDocumentIds = [1, 2, 3, 4, 5];
@@ -199,26 +206,21 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
       const submissionData = { 
         ...formData, 
         hasCAN, 
-        canNumber 
+        canNumber,
+        name: hasCAN ? userName : formData.name
       };
 
       const formDataToSend = new FormData();
-      
-      // Append application data as JSON string
       formDataToSend.append('applicationData', JSON.stringify(submissionData));
       
-      // Append document types as a single JSON array
       const documentTypes = uploadedImages.map(img => img.documentType);
       formDataToSend.append('documentTypes', JSON.stringify(documentTypes));
       
-      // Append files
       uploadedImages.forEach(img => {
         formDataToSend.append('documents', img.file);
       });
 
       console.log('Submitting application to:', `${BASE_URL}/api/applications/submit`);
-      console.log('Files count:', uploadedImages.length);
-      console.log('Document types:', documentTypes);
 
       try {
         const response = await fetch(`${BASE_URL}/api/applications/submit`, {
@@ -230,13 +232,11 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
         
         if (response.ok && data.success) {
           alert("Application submitted successfully!");
-          console.log("Response:", data);
-          
-          // Reset form after successful submission
           setShowSuccess(true);
           setSelectedService("");
           setHasCAN(null);
           setCanNumber("");
+          setUserName("");
           setCurrentStep(1);
           setUploadedImages([]);
           setFormData({
@@ -286,9 +286,15 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
     });
   };
 
-  const goToPreviousStep = () => setCurrentStep(prev => prev - 1);
+  const goToPreviousStep = () => {
+    if (hasCAN === true && currentStep === 3) {
+      setCurrentStep(1);
+    } else {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
 
-  // Fixed Payment Upload Handler
+  // Payment Upload Handler
   const handlePaymentSubmit = async () => {
     if (!paymentName.trim()) {
       alert('Please enter your name');
@@ -322,7 +328,6 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
       
       if (result.success) {
         setPaymentSuccess(true);
-        // Reset form after 3 seconds and redirect
         setTimeout(() => {
           setPaymentSuccess(false);
           setShowPaymentUpload(false);
@@ -357,16 +362,6 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
       button.classList.remove('animate-pulse');
       callback();
     }, 300);
-  };
-
-  // Test backend connection
-  const testBackendConnection = async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/api/applications/all`);
-      return response.ok;
-    } catch (error) {
-      return false;
-    }
   };
 
   return (
@@ -412,18 +407,8 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
                 Dismiss
               </button>
             </div>
-            <div className="mt-2 text-sm">
-              <p>To fix this:</p>
-              <ol className="list-decimal list-inside ml-4">
-                <li>Make sure your backend server is running on port 5000</li>
-                <li>Check if the backend URL is correct: {BASE_URL}</li>
-                <li>Verify CORS is configured in the backend</li>
-              </ol>
-            </div>
           </div>
         )}
-
-        
 
         {/* Payment Upload Section */}
         {showPaymentUpload && (
@@ -443,7 +428,7 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
             {paymentSuccess ? (
               <div className="text-center py-8">
                 <div className="text-6xl mb-4">✅</div>
-                <h3 className="text-2xl font-bold text-green-600 mb-2">Payment screenshot Uploaded Successfully!</h3>
+                <h3 className="text-2xl font-bold text-green-600 mb-2">Payment Screenshot Uploaded Successfully!</h3>
                 <p className="text-gray-600">Your payment screenshot has been submitted successfully.</p>
                 <p className="text-gray-600">Redirecting back to dashboard...</p>
               </div>
@@ -497,7 +482,7 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
           </div>
         )}
 
-        {/* Service Selection Cards - Centered and Larger */}
+        {/* Service Selection Cards */}
         {(!selectedService || showSuccess) && !showPaymentUpload && (
           <div className="flex justify-center items-center min-h-[60vh]">
             <div className="grid grid-cols-1 gap-8 w-full max-w-2xl">
@@ -538,7 +523,7 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
                     onClick={(e) => handleAnimatedClick(() => { setShowPaymentUpload(true); setSelectedService(""); }, e)}
                     className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg font-semibold shadow-lg w-full max-w-xs mx-auto"
                   >
-                    Upload Payment screenshot
+                    Upload Payment Screenshot
                   </button>
                 </div>
               </div>
@@ -553,10 +538,13 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
             setHasCAN={setHasCAN}
             canNumber={canNumber}
             setCanNumber={setCanNumber}
+            userName={userName}
+            setUserName={setUserName}
             onSuccess={handleCANSuccess}
           />
         )}
-        {selectedService && currentStep === 2 && (
+        
+        {selectedService && currentStep === 2 && hasCAN === false && (
           <PersonalDetailsStep 
             formData={formData}
             handleInputChange={handleInputChange}
@@ -564,6 +552,7 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
             goToPreviousStep={goToPreviousStep}
           />
         )}
+        
         {selectedService && currentStep === 3 && (
           <PattaOptionsStep 
             formData={formData}
@@ -574,9 +563,11 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
             reasonOptions={reasonOptions}
             handleReasonChange={handleReasonChange}
             hasCAN={hasCAN}
+            userName={userName}
             goToPreviousStep={goToPreviousStep}
           />
         )}
+        
         {selectedService && currentStep === 4 && (
           <LandDetailsStep 
             formData={formData}
@@ -585,6 +576,7 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
             goToPreviousStep={goToPreviousStep}
           />
         )}
+        
         {selectedService && currentStep === 5 && (
           <DocumentUploadStep 
             uploadedImages={uploadedImages}
@@ -594,20 +586,23 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
             handleReviewSubmit={handleReviewSubmit}
           />
         )}
+        
         {selectedService && currentStep === 6 && (
           <ReviewSubmitStep 
             formData={formData}
             uploadedImages={uploadedImages}
+            hasCAN={hasCAN}
+            canNumber={canNumber}
+            userName={userName}
             goToPreviousStep={goToPreviousStep}
             handleFinalSubmit={handleFinalSubmit}
           />
         )}
       </main>
 
-      {/* Footer Content in 4 Columns */}
+      {/* Footer */}
       <footer className="bg-gray-800 text-white py-6 mt-auto">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Logo Section */}
           <div className="flex justify-center mb-6">
             <div className="flex items-center space-x-2">
               <img 
@@ -619,9 +614,7 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
             </div>
           </div>
 
-          {/* Footer Content in 4 Columns */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {/* Services */}
             <div className="flex flex-col items-center text-center">
               <h4 className="font-bold mb-2">Services</h4>
               <p className="text-sm text-gray-300">Patta Services</p>
@@ -632,19 +625,16 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
               <p className="text-sm text-gray-300">Bill Payments</p>
             </div>
 
-            {/* Location */}
             <div className="flex flex-col items-center text-center">
               <h4 className="font-bold mb-2">Location</h4>
               <p className="text-sm text-gray-300">Tiruppur main road, Sivanmalai, Kangayam</p>
             </div>
 
-            {/* Timing */}
             <div className="flex flex-col items-center text-center">
               <h4 className="font-bold mb-2">Timing</h4>
               <p className="text-sm text-gray-300">Mon-Sat: 9:00 AM - 8:00 PM</p>
             </div>
 
-            {/* Contact */}
             <div className="flex flex-col items-center text-center">
               <h4 className="font-bold mb-2">Contact</h4>
               <p className="text-sm text-gray-300">📞 +91 9943275557</p>
@@ -652,7 +642,6 @@ const taluksByDistrict = { "Tiruppur": ["Tiruppur", "Dharapuram", "Kangayam", "M
             </div>
           </div>
 
-          {/* Copyright */}
           <div className="border-t border-gray-700 mt-6 pt-4 text-center">
             <p className="text-xs text-gray-400">
               &copy; {new Date().getFullYear()} Star Mobile. All rights reserved. | Designed with ❤️ for our customers

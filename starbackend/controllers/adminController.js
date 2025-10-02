@@ -2,107 +2,113 @@ const Admin = require("../models/Admin");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Admin Signup
-exports.signupAdmin = async (req, res) => {
-  console.log("Signup Request body:", req.body);
-
-  if (!req.body) {
-    return res.status(400).json({ success: false, message: "No data provided" });
-  }
-
-  const { companyName, adminId, name, email, phone, password } = req.body;
-
-  // Validation
-  if (!companyName || !adminId || !name || !email || !phone || !password) {
-    return res.status(400).json({ success: false, message: "All fields are required" });
-  }
-
+// Admin Signin
+exports.signin = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    // Check if admin exists by email or adminId
-    const existingAdmin = await Admin.findOne({ 
-      $or: [{ email }, { adminId }] 
-    });
-    
-    if (existingAdmin) {
-      return res.status(400).json({ success: false, message: "Admin already exists with this email or ID" });
-    }
+    const admin = await Admin.findOne({ email });
+    if (!admin) return res.status(400).json({ success: false, message: "Invalid credentials" });
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid credentials" });
 
-    // Create new admin
-    const newAdmin = new Admin({
-      companyName,
-      adminId,
-      name,
-      email,
-      phone,
-      password: hashedPassword,
-    });
-
-    await newAdmin.save();
-    res.status(201).json({ 
+    const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET || "fallbacksecret", { expiresIn: "1d" });
+    res.json({ 
       success: true, 
-      message: "Admin registered successfully" 
+      token, 
+      admin: { 
+        companyName: admin.companyName, 
+        name: admin.name, 
+        email: admin.email, 
+        phone: admin.phone 
+      } 
     });
   } catch (err) {
-    console.error("Signup error:", err);
-    res.status(500).json({ success: false, message: "Server error: " + err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// Admin Signin
-exports.signinAdmin = async (req, res) => {
-  console.log("Signin request body:", req.body);
-
-  const { login, password } = req.body;
-
-  // Validation
-  if (!login || !password) {
-    return res.status(400).json({ success: false, message: "Login and password are required" });
-  }
-
+// Get profile
+exports.getAdminProfile = async (req, res) => {
   try {
-    // Find admin by email or adminId
-    const admin = await Admin.findOne({
-      $or: [{ email: login }, { adminId: login }]
-    });
+    const admin = await Admin.findById(req.user.id).select("-password");
+    if (!admin) return res.status(404).json({ success: false, message: "Admin not found" });
+    res.json({ success: true, admin });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Verify password for edit
+exports.verifyPassword = async (req, res) => {
+  try {
+    const { currentPassword } = req.body;
+    console.log("Password verification request for user:", req.user.id);
+    
+    const admin = await Admin.findById(req.user.id);
     
     if (!admin) {
+      console.log("Admin not found");
       return res.status(404).json({ success: false, message: "Admin not found" });
     }
 
-    // Check password
-    const isPasswordCorrect = await bcrypt.compare(password, admin.password);
-    if (!isPasswordCorrect) {
-      return res.status(400).json({ success: false, message: "Invalid credentials" });
+    console.log("Comparing passwords...");
+    const isMatch = await bcrypt.compare(currentPassword, admin.password);
+    
+    if (!isMatch) {
+      console.log("Password mismatch");
+      return res.status(400).json({ success: false, message: "Invalid password" });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { 
-        id: admin._id, 
-        email: admin.email,
-        adminId: admin.adminId 
-      }, 
-      process.env.JWT_SECRET || 'fallback_secret', 
-      { expiresIn: "24h" }
-    );
+    console.log("Password verified successfully");
+    res.json({ success: true, message: "Password verified" });
+  } catch (err) {
+    console.error("Password verification error:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 
-    res.status(200).json({ 
-      success: true,
-      message: "Signin successful", 
-      token,
-      admin: {
-        id: admin._id,
-        name: admin.name,
-        email: admin.email,
-        companyName: admin.companyName,
-        adminId: admin.adminId
-      }
+// Update profile
+exports.updateAdmin = async (req, res) => {
+  try {
+    const { companyName, name, email, phone, currentPassword, newPassword } = req.body;
+    console.log("Update request for user:", req.user.id);
+    
+    const admin = await Admin.findById(req.user.id);
+    if (!admin) return res.status(404).json({ success: false, message: "Admin not found" });
+
+    // Verify current password
+    console.log("Verifying current password...");
+    const isMatch = await bcrypt.compare(currentPassword, admin.password);
+    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid current password" });
+
+    // Update fields
+    admin.companyName = companyName || admin.companyName;
+    admin.name = name || admin.name;
+    admin.email = email || admin.email;
+    admin.phone = phone || admin.phone;
+
+    // Update password if provided
+    if (newPassword && newPassword.trim() !== "") {
+      console.log("Updating password...");
+      const salt = await bcrypt.genSalt(10);
+      admin.password = await bcrypt.hash(newPassword, salt);
+    }
+
+    await admin.save();
+    console.log("Admin updated successfully");
+    
+    res.json({ 
+      success: true, 
+      admin: { 
+        companyName: admin.companyName, 
+        name: admin.name, 
+        email: admin.email, 
+        phone: admin.phone 
+      } 
     });
   } catch (err) {
-    console.error("Signin error:", err);
-    res.status(500).json({ success: false, message: "Server error: " + err.message });
+    console.error("Update error:", err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };
