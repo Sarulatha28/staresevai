@@ -152,14 +152,14 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
 
   const getDocumentTypeName = (docType) => {
     const types = {
-      1: 'Aadhar Card',
-      2: 'Patta Document',
-      3: 'Survey Document',
-      4: 'Registration Document',
-      5: 'Identity Proof',
-      6: 'Address Proof',
-      7: 'Land Document',
-      8: 'Other Document'
+      1: 'Encumbrance certificate',
+      2: 'Page of Deed/Document showing details of transferer and transferee',
+      3: 'Reverse page of Page showing the registration details along with finger prints of the transferer an transferee',
+      4: 'Page showing schedule of property',
+      5: 'Parent Document with complete chain of transactions',
+      6: 'Legal heir certificate',
+      7: 'Death certificate',
+      8: 'Aadhaar card'
     };
     return types[docType] || `Document Type ${docType}`;
   };
