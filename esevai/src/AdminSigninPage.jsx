@@ -20,7 +20,7 @@ const AdminSigninPage = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${BASE_URL}/api/admin-signin`, {
+      const res = await fetch(`${BASE_URL}/api/admin/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -90,7 +90,7 @@ const AdminSigninPage = () => {
         <p className="mt-4 text-center text-gray-600">
           Don't have an account?{" "}
           <button
-            onClick={() => navigate("/admin-signup")}
+            onClick={() => navigate("/admin/signup")}
             className="text-purple-600 font-semibold hover:underline"
           >
             Sign Up

@@ -11,8 +11,8 @@ function App() {
     <Routes>
       <Route path="/" element={<HeroSection />} />
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
-      <Route path="/admin-signup" element={<AdminSignupPage />} />
-      <Route path="/admin-signin" element={<AdminSigninPage />} />
+      <Route path="/admin/signup" element={<AdminSignupPage />} />
+      <Route path="/admin/signin" element={<AdminSigninPage />} />
       <Route path="/admin/home" element={<AdminHomePage />} />
       <Route path="/user-dashboard" element={<UserDashboard />} />
 
