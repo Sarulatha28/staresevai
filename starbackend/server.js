@@ -37,7 +37,6 @@ app.use(cors({
 app.options('*', cors());
 
 // Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Models
 const Admin = require("./models/Admin");
@@ -51,6 +50,7 @@ app.use("/api/applications", require("./routes/applicationRoutes"));
 app.use("/api/can", require("./routes/canRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/documents", require("./routes/documents"));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Error handling middleware
 app.use((error, req, res, next) => {
@@ -73,10 +73,13 @@ app.get('/api/test-cors', (req, res) => {
 
 // Ensure uploads directories exist
 const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Uploads directory created:', uploadsDir);
+} else {
+  console.log('Uploads directory already exists:', uploadsDir);
+}
 
-const paymentsDir = path.join(uploadsDir, 'payments');
-if (!fs.existsSync(paymentsDir)) fs.mkdirSync(paymentsDir, { recursive: true });
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/patta-system";

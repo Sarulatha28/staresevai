@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+      "ensure-uploads": "node scripts/ensureUploads.js",
+    "dev": "npm run ensure-uploads && nodemon server.js",
+    "start": "npm run ensure-uploads && node server.js"
   },
   "keywords": [],
   "author": "",

@@ -2,7 +2,39 @@ const Application = require('../models/Application');
 const CAN = require('../models/CAN');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 
+// In your applicationController.js or upload configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = 'uploads/';
+    // Ensure uploads directory exists
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // Keep original extension for proper MIME type detection
+    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { 
+    fileSize: 400 * 1024 // 400KB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow PDF files only
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'), false);
+    }
+  }
+});
 // Submit application with enhanced file handling
 exports.submitApplication = async (req, res) => {
   let uploadedFiles = [];

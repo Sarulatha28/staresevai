@@ -97,60 +97,104 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
       alert('Failed to update status');
     }
   };
+   // In your AdminHomepage component - update the downloadDocument function
+const downloadDocument = async (doc, index) => {
+  setDownloading(index);
+  try {
+    console.log('Attempting to download:', doc.fileName);
+    
+    // Try multiple endpoints for robustness
+    const endpoints = [
+      `${BASE_URL}/api/documents/download/${doc.fileName}`,
+      `${BASE_URL}/api/documents/file/${doc.fileName}`,
+      `${BASE_URL}/uploads/${doc.fileName}`
+    ];
 
-  // Download Function
-  const downloadDocument = async (doc, index) => {
-    setDownloading(index);
-    try {
-      const response = await fetch(`${BASE_URL}/api/documents/download/${doc.fileName}`);
-      
-      if (!response.ok) {
-        throw new Error('Download failed');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      const fileName = doc.originalName?.endsWith('.pdf') 
-        ? doc.originalName 
-        : `${doc.originalName || `document_${index + 1}`}.pdf`;
-      
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-    } catch (error) {
-      console.error('Download error:', error);
+    let success = false;
+    
+    for (const endpoint of endpoints) {
       try {
-        const downloadUrl = `${BASE_URL}/uploads/${doc.fileName}`;
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        const fileName = doc.originalName?.endsWith('.pdf') 
-          ? doc.originalName 
-          : `${doc.originalName || `document_${index + 1}`}.pdf`;
-        link.download = fileName;
-        link.setAttribute('target', '_blank');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (fallbackError) {
-        console.error('Fallback download error:', fallbackError);
-        alert('Failed to download document. Please try again.');
+        console.log('Trying endpoint:', endpoint);
+        const response = await fetch(endpoint);
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          
+          // Check if blob is valid
+          if (blob.size === 0) {
+            console.warn('Empty blob received from:', endpoint);
+            continue;
+          }
+          
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          
+          // Use original name or generate meaningful name
+          const fileName = doc.originalName && doc.originalName.endsWith('.pdf') 
+            ? doc.originalName 
+            : `${doc.originalName || `document_${index + 1}`}.pdf`;
+          
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          console.log('Download successful from:', endpoint);
+          success = true;
+          break;
+        }
+      } catch (endpointError) {
+        console.warn(`Endpoint ${endpoint} failed:`, endpointError);
+        continue;
       }
-    } finally {
-      setDownloading(null);
     }
-  };
 
-  // View document in new tab
-  const viewDocument = (document) => {
+    if (!success) {
+      throw new Error('All download methods failed');
+    }
+    
+  } catch (error) {
+    console.error('All download attempts failed:', error);
+    
+    // Final fallback - direct link
+    try {
+      const directUrl = `${BASE_URL}/uploads/${doc.fileName}`;
+      console.log('Trying direct URL:', directUrl);
+      window.open(directUrl, '_blank');
+    } catch (fallbackError) {
+      console.error('Final fallback failed:', fallbackError);
+      alert('Failed to download document. Please check console for details.');
+    }
+  } finally {
+    setDownloading(null);
+  }
+};
+
+// Enhanced view function
+const viewDocument = async (document) => {
+  try {
+    console.log('Viewing document:', document.fileName);
+    
     const viewUrl = `${BASE_URL}/api/documents/view/${document.fileName}`;
-    window.open(viewUrl, '_blank');
-  };
+    const directUrl = `${BASE_URL}/uploads/${document.fileName}`;
+    
+    // Try the API endpoint first
+    const response = await fetch(viewUrl);
+    if (response.ok) {
+      window.open(viewUrl, '_blank');
+    } else {
+      // Fallback to direct URL
+      window.open(directUrl, '_blank');
+    }
+  } catch (error) {
+    console.error('View error:', error);
+    // Final fallback
+    window.open(`${BASE_URL}/uploads/${document.fileName}`, '_blank');
+  }
+};
+ 
 
   const getDocumentTypeName = (docType) => {
     const types = {
