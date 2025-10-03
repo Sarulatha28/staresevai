@@ -1,26 +1,31 @@
-// PaymentStep Component - Fixed version
 import React, { useState, useRef } from 'react';
+
+const BASE_URL = "https://staresevaimaiyam.onrender.com";
 
 const PaymentStep = ({ formData, goToPreviousStep, handlePaymentSubmit }) => {
   const [screenshot, setScreenshot] = useState(null);
   const [screenshotPreview, setScreenshotPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
   const fileInputRef = useRef(null);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Reset error
+    setError('');
+
     // Validate file size (400KB limit)
     if (file.size > 400 * 1024) {
-      alert(`${file.name} exceeds 400KB limit`);
-      fileInputRef.current.value = ''; // Reset file input
+      setError(`${file.name} exceeds 400KB limit. Please choose a smaller file.`);
+      fileInputRef.current.value = '';
       return;
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      setError('Please upload an image file (JPEG, PNG, GIF, WEBP)');
       fileInputRef.current.value = '';
       return;
     }
@@ -34,11 +39,12 @@ const PaymentStep = ({ formData, goToPreviousStep, handlePaymentSubmit }) => {
 
   const handleSubmit = async () => {
     if (!screenshot) {
-      alert('Please upload payment screenshot');
+      setError('Please upload payment screenshot');
       return;
     }
 
     setUploading(true);
+    setError('');
 
     try {
       const paymentData = new FormData();
@@ -46,11 +52,18 @@ const PaymentStep = ({ formData, goToPreviousStep, handlePaymentSubmit }) => {
       paymentData.append('mobileNumber', formData.mobileNumber);
       paymentData.append('paymentFile', screenshot);
       
+      console.log('Submitting payment to:', `${BASE_URL}/api/payments/submit`);
+      
       const response = await fetch(`${BASE_URL}/api/payments/submit`, {
         method: 'POST',
-        body: paymentData
-        // Don't set Content-Type header for FormData - browser will set it automatically
+        body: paymentData,
+        // Don't set Content-Type header - let browser set it with boundary
       });
+
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+      }
 
       const result = await response.json();
       
@@ -61,11 +74,11 @@ const PaymentStep = ({ formData, goToPreviousStep, handlePaymentSubmit }) => {
         }
         handlePaymentSubmit();
       } else {
-        alert('Payment submission failed: ' + result.message);
+        throw new Error(result.message || 'Payment submission failed');
       }
     } catch (error) {
       console.error('Error submitting payment:', error);
-      alert('Error submitting payment. Please try again.');
+      setError(`Error submitting payment: ${error.message}. Please try again.`);
     } finally {
       setUploading(false);
     }
@@ -104,9 +117,17 @@ const PaymentStep = ({ formData, goToPreviousStep, handlePaymentSubmit }) => {
             disabled={uploading}
           />
           <p className="text-xs text-gray-500 mt-1">
-            Supported formats: JPG, PNG, GIF. Max size: 400KB
+            Supported formats: JPG, PNG, GIF, WEBP. Max size: 400KB
           </p>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <strong className="font-bold">Error: </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
 
         {/* Preview Section */}
         {screenshotPreview && (
@@ -122,7 +143,7 @@ const PaymentStep = ({ formData, goToPreviousStep, handlePaymentSubmit }) => {
                   e.target.style.display = 'none';
                 }}
               />
-              <p className="text-xs text-center text-gray-500 mt-2">
+              <p className="text-xs text-center text-gray-500 mt-2 truncate">
                 {screenshot?.name}
               </p>
             </div>
@@ -133,14 +154,14 @@ const PaymentStep = ({ formData, goToPreviousStep, handlePaymentSubmit }) => {
           <button
             onClick={goToPreviousStep}
             disabled={uploading}
-            className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 disabled:opacity-50"
+            className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 disabled:opacity-50 transition-colors"
           >
             Back
           </button>
           <button
             onClick={handleSubmit}
             disabled={!screenshot || uploading}
-            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center"
+            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center min-w-32"
           >
             {uploading ? (
               <>

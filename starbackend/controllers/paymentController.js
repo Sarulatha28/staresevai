@@ -4,13 +4,15 @@ const path = require('path');
 const fs = require('fs');
 
 // Submit payment
-
-
-
-// controllers/paymentController.js - Add logging
 exports.submitPayment = async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', 'https://staresevaimaiyam.netlify.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
   try {
-    console.log('Payment submission started:', req.body);
+    console.log('Payment submission request received');
+    console.log('Request body:', req.body);
     console.log('Uploaded file:', req.file);
 
     const { name, mobileNumber } = req.body;
@@ -29,13 +31,16 @@ exports.submitPayment = async (req, res) => {
       });
     }
 
-    // Log file details
-    console.log('File details:', {
-      filename: req.file.filename,
-      originalname: req.file.originalname,
-      path: req.file.path,
-      size: req.file.size
-    });
+    // Validate file
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedMimeTypes.includes(req.file.mimetype)) {
+      // Delete the uploaded file
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Only image files (JPEG, PNG, GIF, WEBP) are allowed' 
+      });
+    }
 
     const payment = new Payment({
       name: name.trim(),
@@ -54,65 +59,40 @@ exports.submitPayment = async (req, res) => {
     });
   } catch (error) {
     console.error('Error submitting payment:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to submit payment' 
-    });
-  }
-};
-exports.submitPayment = async (req, res) => {
-  try {
-    const { name, mobileNumber } = req.body;
     
-    if (!name || !mobileNumber) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Name and mobile number are required' 
-      });
+    // Delete uploaded file if error occurred
+    if (req.file && req.file.path) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (fileError) {
+        console.error('Error deleting uploaded file:', fileError);
+      }
     }
 
-    if (!req.file) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Payment screenshot is required' 
-      });
-    }
-
-    const payment = new Payment({
-      name: name.trim(),
-      mobileNumber: mobileNumber.trim(),
-      paymentScreenshot: req.file.filename,
-      originalFileName: req.file.originalname
-    });
-
-    await payment.save();
-
-    res.json({ 
-      success: true, 
-      message: 'Payment details submitted successfully',
-      payment: payment
-    });
-  } catch (error) {
-    console.error('Error submitting payment:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to submit payment' 
+      message: 'Failed to submit payment: ' + error.message 
     });
   }
 };
 
 // Get all payments
 exports.getAllPayments = async (req, res) => {
+  res.header('Access-Control-Allow-Origin', 'https://staresevaimaiyam.netlify.app');
+  
   try {
     const payments = await Payment.find().sort({ createdAt: -1 });
     res.json({ success: true, payments });
   } catch (error) {
+    console.error('Error fetching payments:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch payments' });
   }
 };
 
 // Delete payment
 exports.deletePayment = async (req, res) => {
+  res.header('Access-Control-Allow-Origin', 'https://staresevaimaiyam.netlify.app');
+  
   try {
     const payment = await Payment.findById(req.params.id);
     
@@ -130,6 +110,7 @@ exports.deletePayment = async (req, res) => {
     
     res.json({ success: true, message: 'Payment record deleted successfully' });
   } catch (error) {
+    console.error('Error deleting payment:', error);
     res.status(500).json({ success: false, message: 'Failed to delete payment record' });
   }
 };
