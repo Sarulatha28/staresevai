@@ -187,6 +187,10 @@ const ReviewSubmitStep = ({
             <p className="text-lg font-semibold text-gray-900">{formData.regDocNo || "Not provided"}</p>
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-600">Document Year:</label>
+            <p className="text-lg font-semibold text-gray-900">{formData.docYear || "Not provided"}</p>
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-600">Registered Date:</label>
             <p className="text-lg font-semibold text-gray-900">{formData.registeredDate || "Not provided"}</p>
           </div>
