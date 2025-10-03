@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
-// In your applicationController.js or upload configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = 'uploads/';

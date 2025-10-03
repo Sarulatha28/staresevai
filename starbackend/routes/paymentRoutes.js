@@ -11,14 +11,21 @@ const {
 const router = express.Router();
 
 // Configure multer for file uploads
+// routes/paymentRoutes.js - Enhanced multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/payments/');
+    const uploadPath = path.join(__dirname, '../uploads/payments/');
+    
+    // Create directory if it doesn't exist
+    fs.mkdirSync(uploadPath, { recursive: true });
+    
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    // Generate unique filename
+    // Generate unique filename with original extension
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'payment-' + uniqueSuffix + path.extname(file.originalname));
+    const fileExtension = path.extname(file.originalname);
+    cb(null, 'payment-' + uniqueSuffix + fileExtension);
   }
 });
 
@@ -43,5 +50,7 @@ const upload = multer({
 router.post('/submit', upload.single('paymentFile'), submitPayment);
 router.get('/all', getAllPayments);
 router.delete('/:id', deletePayment);
+router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 
 module.exports = router;

@@ -97,7 +97,6 @@ const ApplicationDetails = ({ application, onClose, onStatusUpdate }) => {
       alert('Failed to update status');
     }
   };
-   // In your AdminHomepage component - update the downloadDocument function
 const downloadDocument = async (doc, index) => {
   setDownloading(index);
   try {
@@ -748,18 +747,31 @@ const PaymentDetails = ({ payment, onClose, onDelete }) => {
             </div>
           </div>
 
-          {payment.paymentScreenshot && (
-            <div className="mb-4 sm:mb-6">
-              <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2">Payment Screenshot</label>
-              <img 
-                src={`${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`} 
-                alt={`Payment screenshot for ${payment.name}`}
-                className="rounded-lg shadow-md max-w-full h-48 sm:h-64 object-contain cursor-pointer"
-                onClick={() => window.open(`${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`, '_blank')}
-              />
-              <p className="text-xs text-gray-500 mt-1 text-center">Click image to view full size</p>
-            </div>
-          )}
+{payment.paymentScreenshot && (
+  <div className="mb-3 sm:mb-4">
+    <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Payment Screenshot:</p>
+    <div className="relative">
+      <img 
+        src={`${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`} 
+        alt={`Payment screenshot for ${payment.name}`}
+        className="rounded-lg shadow-md max-w-full h-32 sm:h-48 object-contain cursor-pointer bg-gray-100"
+        onError={(e) => {
+          console.error('Error loading payment image:', `${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`);
+          e.target.style.display = 'none';
+          // Show fallback message
+          const fallback = document.createElement('div');
+          fallback.className = 'bg-gray-200 rounded-lg h-32 sm:h-48 flex items-center justify-center';
+          fallback.innerHTML = '<p class="text-gray-500 text-sm">Image not available</p>';
+          e.target.parentNode.appendChild(fallback);
+        }}
+        onLoad={(e) => {
+          console.log('Payment image loaded successfully');
+        }}
+      />
+    </div>
+    <p className="text-xs text-gray-500 mt-1">Click image to view full size</p>
+  </div>
+)}
 
           <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
             <button
@@ -1299,18 +1311,31 @@ const AdminHomepage = () => {
                 </p>
               </div>
 
-              {payment.paymentScreenshot && (
-                <div className="mb-3 sm:mb-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Payment Screenshot:</p>
-                  <img 
-                    src={`${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`} 
-                    alt={`Payment screenshot for ${payment.name}`}
-                    className="rounded-lg shadow-md max-w-full h-32 sm:h-48 object-cover cursor-pointer"
-                    onClick={() => window.open(`${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`, '_blank')}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Click image to view full size</p>
-                </div>
-              )}
+{payment.paymentScreenshot && (
+  <div className="mb-3 sm:mb-4">
+    <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Payment Screenshot:</p>
+    <div className="relative">
+      <img 
+        src={`${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`} 
+        alt={`Payment screenshot for ${payment.name}`}
+        className="rounded-lg shadow-md max-w-full h-32 sm:h-48 object-contain cursor-pointer bg-gray-100"
+        onError={(e) => {
+          console.error('Error loading payment image:', `${BASE_URL}/uploads/payments/${payment.paymentScreenshot}`);
+          e.target.style.display = 'none';
+          // Show fallback message
+          const fallback = document.createElement('div');
+          fallback.className = 'bg-gray-200 rounded-lg h-32 sm:h-48 flex items-center justify-center';
+          fallback.innerHTML = '<p class="text-gray-500 text-sm">Image not available</p>';
+          e.target.parentNode.appendChild(fallback);
+        }}
+        onLoad={(e) => {
+          console.log('Payment image loaded successfully');
+        }}
+      />
+    </div>
+    <p className="text-xs text-gray-500 mt-1">Click image to view full size</p>
+  </div>
+)}
 
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <button

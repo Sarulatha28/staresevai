@@ -11,7 +11,6 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HeroSection />} />
-     // In your main App.js or routing file
    <Route path="/admin-dashboard" element={<AdminDashboard />} />
    <Route path="/admin/signin" element={<AdminSigninPage />} />
    <Route path="/admin/edit" element={<AdminEditProfile />} />
