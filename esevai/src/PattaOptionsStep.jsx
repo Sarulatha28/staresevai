@@ -91,7 +91,7 @@ const PattaOptionsStep = ({
       {formData.pattaOption && (
         <div className="space-y-6 bg-gray-50 p-6 rounded-xl border border-gray-200">
           <h4 className="text-lg font-semibold text-gray-900 mb-4">
-            Service Details for {formData.pattaOption}
+             Details for {formData.pattaOption}
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -234,15 +234,7 @@ const PattaOptionsStep = ({
         </div>
       )}
 
-      {/* Instructions for CAN Users */}
-      {hasCAN && (
-        <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-          <div className="flex items-start">
-            
-           
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 };

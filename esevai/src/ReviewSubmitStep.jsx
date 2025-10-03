@@ -1,5 +1,5 @@
 // ReviewSubmitStep.jsx - Updated version
-import React from "react";
+import React, { useState } from "react";
 
 const ReviewSubmitStep = ({ 
   formData, 
@@ -10,6 +10,51 @@ const ReviewSubmitStep = ({
   goToPreviousStep, 
   handleFinalSubmit 
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Document type mapping
+  const documentTypeMap = {
+    1: 'Encumbrance certificate',
+    2: 'Page of Deed/Document showing details of transferer and transferee',
+    3: 'Reverse page of Page showing the registration details along with finger prints of the transferer and transferee',
+    4: 'Page showing schedule of property',
+    5: 'Parent Document with complete chain of transactions',
+    6: 'Legal heir certificate',
+    7: 'Death certificate',
+    8: 'Aadhaar card'
+  };
+
+  // Enhanced submit handler with faster processing
+  const handleQuickSubmit = async () => {
+    if (isSubmitting) return; // Prevent multiple submissions
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Show immediate feedback
+      const shouldSubmit = window.confirm(
+        "Are you sure you want to submit your application? Please review all details before confirming."
+      );
+      
+      if (!shouldSubmit) {
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Process submission without artificial delays
+      await handleFinalSubmit();
+      
+      // Show success message
+      alert("Application submitted successfully! Your request has been processed.");
+      
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("There was an error submitting your application. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="bg-white p-8 rounded-2xl shadow-2xl border border-blue-200">
       <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
@@ -164,7 +209,7 @@ const ReviewSubmitStep = ({
                 <span className="text-2xl">📄</span>
               </div>
               <p className="text-sm font-medium text-gray-700 truncate">
-                Document {image.documentType}
+                {documentTypeMap[image.documentType] || `Document ${image.documentType}`}
               </p>
               <p className="text-xs text-gray-500 truncate">
                 {image.file.name}
@@ -178,15 +223,17 @@ const ReviewSubmitStep = ({
       <div className="flex justify-between space-x-4 pt-6 border-t border-gray-200">
         <button
           onClick={goToPreviousStep}
-          className="bg-gray-500 text-white px-8 py-3 rounded-xl hover:bg-gray-600 transition-all duration-300 transform hover:scale-105 active:scale-95 flex-1 font-semibold shadow-lg"
+          disabled={isSubmitting}
+          className="bg-gray-500 text-white px-8 py-3 rounded-xl hover:bg-gray-600 transition-all duration-300 transform hover:scale-105 active:scale-95 flex-1 font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           ← Back
         </button>
         <button
-          onClick={handleFinalSubmit}
-          className="bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-105 active:scale-95 flex-1 font-semibold shadow-lg"
+          onClick={handleQuickSubmit}
+          disabled={isSubmitting}
+          className="bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-105 active:scale-95 flex-1 font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Submit Application ✓
+          {isSubmitting ? "Submitting..." : "Submit Application ✓"}
         </button>
       </div>
     </div>
