@@ -2,6 +2,11 @@ const CAN = require('../models/CAN');
 
 // Create new CAN record
 exports.createCAN = async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   try {
     const { name, canNumber } = req.body;
 
@@ -40,31 +45,48 @@ exports.createCAN = async (req, res) => {
     console.error('Error creating CAN record:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error creating CAN record'
+      message: 'Server error creating CAN record',
+      error: error.message
     });
   }
 };
 
 // Get all CAN records
 exports.getAllCAN = async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   try {
+    console.log('Fetching all CAN records...');
+    
     const canRecords = await CAN.find().sort({ createdAt: -1 });
+    
+    console.log(`Successfully fetched ${canRecords.length} CAN records`);
     
     res.json({
       success: true,
-      canRecords
+      canRecords,
+      count: canRecords.length
     });
   } catch (error) {
     console.error('Error fetching CAN records:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error fetching CAN records'
+      message: 'Server error fetching CAN records',
+      error: error.message
     });
   }
 };
 
 // Delete CAN record
 exports.deleteCAN = async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   try {
     const { id } = req.params;
 
@@ -85,7 +107,8 @@ exports.deleteCAN = async (req, res) => {
     console.error('Error deleting CAN record:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error deleting CAN record'
+      message: 'Server error deleting CAN record',
+      error: error.message
     });
   }
 };

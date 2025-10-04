@@ -1,4 +1,3 @@
-// controllers/paymentController.js
 const Payment = require('../models/Payment');
 const path = require('path');
 const fs = require('fs');
@@ -6,7 +5,7 @@ const fs = require('fs');
 // Submit payment
 exports.submitPayment = async (req, res) => {
   // Set CORS headers
-  res.header('Access-Control-Allow-Origin', 'https://staresevaimaiyam.netlify.app');
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
@@ -78,20 +77,39 @@ exports.submitPayment = async (req, res) => {
 
 // Get all payments
 exports.getAllPayments = async (req, res) => {
-  res.header('Access-Control-Allow-Origin', 'https://staresevaimaiyam.netlify.app');
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   try {
+    console.log('Fetching all payments...');
+    
     const payments = await Payment.find().sort({ createdAt: -1 });
-    res.json({ success: true, payments });
+    
+    console.log(`Successfully fetched ${payments.length} payments`);
+    
+    res.json({ 
+      success: true, 
+      payments,
+      count: payments.length
+    });
   } catch (error) {
     console.error('Error fetching payments:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch payments' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch payments',
+      error: error.message 
+    });
   }
 };
 
 // Delete payment
 exports.deletePayment = async (req, res) => {
-  res.header('Access-Control-Allow-Origin', 'https://staresevaimaiyam.netlify.app');
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   try {
     const payment = await Payment.findById(req.params.id);
@@ -111,6 +129,10 @@ exports.deletePayment = async (req, res) => {
     res.json({ success: true, message: 'Payment record deleted successfully' });
   } catch (error) {
     console.error('Error deleting payment:', error);
-    res.status(500).json({ success: false, message: 'Failed to delete payment record' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to delete payment record',
+      error: error.message 
+    });
   }
 };

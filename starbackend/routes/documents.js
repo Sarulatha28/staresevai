@@ -1,7 +1,7 @@
-// routes/documentRoutes.js
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+
 const router = express.Router();
 
 // Download document
@@ -21,15 +21,11 @@ router.get('/download/:filename', (req, res) => {
       });
     }
 
-    // Get file stats to determine MIME type
     const stats = fs.statSync(filePath);
-    
-    // Set appropriate headers
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Length', stats.size);
     
-    // Create read stream and pipe to response
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);
     
@@ -67,11 +63,9 @@ router.get('/view/:filename', (req, res) => {
       });
     }
 
-    // Set headers for inline viewing
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
     
-    // Send the file
     res.sendFile(path.resolve(filePath), (err) => {
       if (err) {
         console.error('Error sending file:', err);
@@ -102,7 +96,8 @@ router.get('/file/:filename', (req, res) => {
     res.status(404).json({ success: false, message: 'File not found' });
   }
 });
-// Add this to your documentRoutes.js
+
+// Debug endpoint
 router.get('/debug/:filename', (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(__dirname, '../uploads', filename);

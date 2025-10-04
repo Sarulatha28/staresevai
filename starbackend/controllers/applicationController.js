@@ -2,40 +2,14 @@ const Application = require('../models/Application');
 const CAN = require('../models/CAN');
 const fs = require('fs');
 const path = require('path');
-const multer = require('multer');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = 'uploads/';
-    // Ensure uploads directory exists
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Keep original extension for proper MIME type detection
-    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
-    cb(null, uniqueName);
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: { 
-    fileSize: 400 * 1024 // 400KB limit
-  },
-  fileFilter: (req, file, cb) => {
-    // Allow PDF files only
-    if (file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PDF files are allowed'), false);
-    }
-  }
-});
 // Submit application with enhanced file handling
 exports.submitApplication = async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   let uploadedFiles = [];
   
   try {
@@ -194,20 +168,44 @@ exports.submitApplication = async (req, res) => {
 
 // Get all applications
 exports.getAllApplications = async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   try {
+    console.log('Fetching all applications...');
+    
     const applications = await Application.find().sort({ createdAt: -1 });
-    console.log('Fetched applications:', applications.length);
-    res.json({ success: true, applications });
+    
+    console.log(`Successfully fetched ${applications.length} applications`);
+    
+    res.json({ 
+      success: true, 
+      applications,
+      count: applications.length
+    });
   } catch (error) {
     console.error('Error fetching applications:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch applications' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch applications',
+      error: error.message 
+    });
   }
 };
 
 // Get applications by CAN status
 exports.getApplicationsByCANStatus = async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   try {
     const { hasCAN } = req.params;
+    
+    console.log(`Fetching applications with hasCAN: ${hasCAN}`);
     
     const applications = await Application.find({ hasCAN: hasCAN === 'true' })
       .sort({ createdAt: -1 });
@@ -223,13 +221,19 @@ exports.getApplicationsByCANStatus = async (req, res) => {
     console.error('Error fetching applications by CAN status:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to fetch applications' 
+      message: 'Failed to fetch applications',
+      error: error.message 
     });
   }
 };
 
 // Get single application
 exports.getApplicationById = async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   try {
     const application = await Application.findById(req.params.id);
     if (!application) {
@@ -239,12 +243,21 @@ exports.getApplicationById = async (req, res) => {
     res.json({ success: true, application });
   } catch (error) {
     console.error('Error fetching application:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch application' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch application',
+      error: error.message 
+    });
   }
 };
 
 // Update application status
 exports.updateApplicationStatus = async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -297,6 +310,11 @@ exports.updateApplicationStatus = async (req, res) => {
 
 // Delete application
 exports.deleteApplication = async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   try {
     const application = await Application.findById(req.params.id);
     if (!application) {
@@ -317,6 +335,10 @@ exports.deleteApplication = async (req, res) => {
     res.json({ success: true, message: 'Application deleted successfully' });
   } catch (error) {
     console.error('Error deleting application:', error);
-    res.status(500).json({ success: false, message: 'Failed to delete application' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to delete application',
+      error: error.message 
+    });
   }
 };
