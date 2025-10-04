@@ -1,4 +1,3 @@
-// models/Payment.js
 const mongoose = require('mongoose');
 
 const paymentSchema = new mongoose.Schema({
@@ -30,11 +29,11 @@ const paymentSchema = new mongoose.Schema({
   },
   expiresAt: { 
     type: Date, 
-    default: () => new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days from now
+    default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
   }
 });
 
-// Auto-delete expired records after 3 days
-paymentSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// Remove auto-delete for now to debug the issue
+// paymentSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('Payment', paymentSchema);
