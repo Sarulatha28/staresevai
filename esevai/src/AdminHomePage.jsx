@@ -715,15 +715,11 @@ const PaymentDetails = ({ payment, onClose, onDelete }) => {
                 <p className="text-base sm:text-lg font-semibold text-purple-600">{payment.mobileNumber}</p>
               </div>
               
-              <div>
-                <label className="block text-sm sm:text-base font-medium text-gray-700">Status</label>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  payment.status === "completed" ? "bg-green-100 text-green-800" :
-                  payment.status === "failed" ? "bg-red-100 text-red-800" :
-                  "bg-yellow-100 text-yellow-800"
-                }`}>
-                  {payment.status || "pending"}
-                </span>
+               <div>
+                <label className="block text-sm sm:text-base font-medium text-gray-700">Days Remaining</label>
+                <p className="text-sm text-gray-600">
+                  {Math.ceil((new Date(payment.expiresAt) - new Date()) / (1000 * 60 * 60 * 24))} days
+                </p>
               </div>
             </div>
 
@@ -738,12 +734,7 @@ const PaymentDetails = ({ payment, onClose, onDelete }) => {
                 <p className="text-sm text-gray-600">{new Date(payment.expiresAt).toLocaleDateString()}</p>
               </div>
               
-              <div>
-                <label className="block text-sm sm:text-base font-medium text-gray-700">Days Remaining</label>
-                <p className="text-sm text-gray-600">
-                  {Math.ceil((new Date(payment.expiresAt) - new Date()) / (1000 * 60 * 60 * 24))} days
-                </p>
-              </div>
+             
             </div>
           </div>
 

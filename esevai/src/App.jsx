@@ -7,6 +7,7 @@ import AdminSigninPage from "./AdminSigninPage";
 import AdminHomePage from "./AdminHomePage";
 import UserDashboard from "./UserDashboard";
 import AdminEditProfile from "./AdminEditProfile";
+import PaymentRecords from "./PaymentRecords";
 function App() {
   return (
     <Routes>
@@ -17,6 +18,7 @@ function App() {
 // Remove or restrict the signup route
       <Route path="/admin/home" element={<AdminHomePage />} />
       <Route path="/user-dashboard" element={<UserDashboard />} />
+     <Route path="/admin/payments" element={<PaymentRecords />} />
 
     </Routes>
   );
