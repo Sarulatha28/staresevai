@@ -70,11 +70,14 @@ app.get('/api/test-cors', (req, res) => {
   }
 });
 
+const paymentRoutes = require('./routes/paymentRoutes');
+
 // API Routes
 app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/can', require('./routes/canRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/documents', require('./routes/documents'));
+app.use('/api/payments', paymentRoutes);
 
 // Root route
 app.get('/', (req, res) => {

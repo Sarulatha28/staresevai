@@ -5,8 +5,7 @@ const {
   submitPayment,
   getAllPayments,
   deletePayment,
-  getPaymentImage,
-  testFileAccess
+  getPaymentImage
 } = require('../controllers/paymentController');
 
 const router = express.Router();
@@ -15,8 +14,7 @@ const router = express.Router();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(__dirname, '../uploads/payments/');
-    // Create directory if it doesn't exist
-    fs.mkdirSync(uploadDir, { recursive: true });
+    require('fs').mkdirSync(uploadDir, { recursive: true });
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
@@ -44,8 +42,7 @@ const upload = multer({
 // Routes
 router.post('/submit', upload.single('paymentFile'), submitPayment);
 router.get('/all', getAllPayments);
-router.get('/image/:filename', getPaymentImage);
-router.get('/debug/files', testFileAccess); // Debug endpoint
 router.delete('/:id', deletePayment);
+router.get('/image/:filename', getPaymentImage);
 
 module.exports = router;
