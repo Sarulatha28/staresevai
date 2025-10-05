@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
 const path = require('path');
 require('dotenv').config();
 
@@ -56,7 +57,7 @@ app.get('/api/test', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
+const Admin = require('./models/Admin');
 // ✅ IMPORT ALL ROUTES
 const applicationRoutes = require('./routes/applicationRoutes');
 const canRoutes = require('./routes/canRoutes');
@@ -70,6 +71,55 @@ app.use('/api/can', canRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/admin', adminRoutes); // This enables /api/admin/signin
+
+
+// Create default admin if none exists
+// Create default admin if none exists
+const createDefaultAdmin = async () => {
+  try {
+    const Admin = require('./models/Admin');
+    const bcrypt = require('bcryptjs');
+    
+    const existingAdmin = await Admin.findOne({ email: 'starmobile.siv@gmail.com' });
+    
+    if (!existingAdmin) {
+      // Set your desired initial password here
+      const initialPassword = "star8523"; // Change this to your desired password
+      const hashedPassword = await bcrypt.hash(initialPassword, 10);
+      
+      const defaultAdmin = new Admin({
+        companyName: 'Star esevai',
+        name: 'Deivaraj Jayaram',
+        email: 'starmobile.siv@gmail.com',
+        phone: '9500553553',
+        password: hashedPassword
+      });
+      
+      await defaultAdmin.save();
+      console.log('✅ Default admin account created');
+      console.log('📧 Email: starmobile.siv@gmail.com');
+      console.log('🔑 Password: yourpassword123'); // This will show the actual password
+      console.log('💡 You can change this password later in the edit profile section');
+    } else {
+      console.log('✅ Admin account already exists');
+    }
+  } catch (error) {
+    console.error('Error creating default admin:', error);
+  }
+};
+
+// Call this after MongoDB connection
+mongoose.connect(MONGODB_URI)
+.then(() => {
+  console.log('MongoDB connected successfully');
+  createDefaultAdmin(); // Add this line
+})
+.catch((error) => {
+  console.error('MongoDB connection error:', error);
+  process.exit(1);
+});
+
+
 
 // Root route
 app.get('/', (req, res) => {
@@ -121,6 +171,11 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Admin endpoints available at: http://localhost:${PORT}/api/admin`);
 });
+
+
+
+
+
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
