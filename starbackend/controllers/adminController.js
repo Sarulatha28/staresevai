@@ -3,16 +3,49 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // Admin Signin
+// Admin Signin with detailed logging
 exports.signin = async (req, res) => {
   const { email, password } = req.body;
+  
+  console.log('🔐 Signin attempt:', { email, password: password ? '***' : 'missing' });
+  
   try {
-    const admin = await Admin.findOne({ email });
-    if (!admin) return res.status(400).json({ success: false, message: "Invalid credentials" });
+    // Check if email and password are provided
+    if (!email || !password) {
+      console.log('❌ Missing email or password');
+      return res.status(400).json({ 
+        success: false, 
+        message: "Email and password are required" 
+      });
+    }
 
+    const admin = await Admin.findOne({ email });
+    console.log('📋 Admin found:', admin ? 'Yes' : 'No');
+    
+    if (!admin) {
+      console.log('❌ No admin found with email:', email);
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid credentials" 
+      });
+    }
+
+    console.log('🔑 Comparing passwords...');
     const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid credentials" });
+    console.log('Password match:', isMatch);
+
+    if (!isMatch) {
+      console.log('❌ Password does not match');
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid credentials" 
+      });
+    }
 
     const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET || "fallbacksecret", { expiresIn: "1d" });
+    
+    console.log('✅ Login successful for:', email);
+    
     res.json({ 
       success: true, 
       token, 
@@ -24,7 +57,11 @@ exports.signin = async (req, res) => {
       } 
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('💥 Signin error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: err.message 
+    });
   }
 };
 
