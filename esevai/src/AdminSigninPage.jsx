@@ -104,12 +104,12 @@ const handleChange = (e) => {
             Edit Admin Details
           </button>
         </div>
-         {/* Temporary test credentials display */}
+         {/* Temporary test credentials display
         <div className="mt-4 p-3 bg-yellow-100 rounded text-sm">
           <p className="font-bold">Test Credentials:</p>
           <p>Email: admin@example.com</p>
           <p>Password: admin123</p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
